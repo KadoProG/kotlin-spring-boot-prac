@@ -13,4 +13,9 @@ class HealthController {
     fun health(): ResponseEntity<Map<String, String>> {
         return ResponseEntity.ok(mapOf("status" to "ok", "message" to "Spring Boot API is running"))
     }
+
+    @GetMapping("/hello")
+    fun hello(): ResponseEntity<Map<String, String>> {
+        return ResponseEntity.ok(mapOf("message" to "Hello World"))
+    }
 }

@@ -17,7 +17,7 @@ class SecurityConfig {
             .csrf { it.disable() }
             .authorizeHttpRequests { auth ->
                 auth
-                    .requestMatchers("/v1/health", "/h2-console/**").permitAll()
+                    .requestMatchers("/v1/health", "/v1/hello", "/h2-console/**").permitAll()
                     .anyRequest().authenticated()
             }
             .sessionManagement { session ->
