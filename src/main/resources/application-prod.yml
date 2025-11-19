@@ -25,7 +25,7 @@ spring:
 
 # Server Configuration
 server:
-  port: ${SERVER_PORT:8080}
+  port: ${SERVER_PORT}
   servlet:
     context-path: /api
 
@@ -33,7 +33,9 @@ server:
 app:
   jwt:
     secret: ${JWT_SECRET} # 本番環境では必ず設定
-    expiration: ${JWT_EXPIRATION:86400000}
+    expiration: ${JWT_EXPIRATION}
+  cors:
+    allowed-origins: ${FRONTEND_URL}
 
 # Logging (本番環境用)
 logging:
