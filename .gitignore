@@ -45,4 +45,3 @@ application-local.properties
 *.db
 *.mv.db
 *.trace.db
-
