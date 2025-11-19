@@ -27,15 +27,17 @@ spring:
 
 # Server Configuration
 server:
-  port: 8080
+  port: ${SERVER_PORT}
   servlet:
     context-path: /api
 
 # Application Configuration
 app:
   jwt:
-    secret: ${JWT_SECRET:your-secret-key-change-this-in-production}
-    expiration: ${JWT_EXPIRATION:86400000} # 24 hours in milliseconds
+    secret: ${JWT_SECRET}
+    expiration: ${JWT_EXPIRATION} # 24 hours in milliseconds
+  cors:
+    allowed-origins: ${FRONTEND_URL}
 
 # Logging
 logging:
