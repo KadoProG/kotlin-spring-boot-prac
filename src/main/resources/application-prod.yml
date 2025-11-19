@@ -1,0 +1,48 @@
+spring:
+  application:
+    name: kotlin-spring-boot-prac
+
+  # Database Configuration (本番環境用 - PostgreSQL/MySQLなどを想定)
+  datasource:
+    url: ${DB_URL}
+    driver-class-name: ${DB_DRIVER}
+    username: ${DB_USERNAME}
+    password: ${DB_PASSWORD}
+
+  # JPA Configuration
+  jpa:
+    hibernate:
+      ddl-auto: validate # 本番環境ではvalidate推奨
+    show-sql: false # 本番環境ではfalse推奨
+    properties:
+      hibernate:
+        format_sql: false
+
+  # H2 Console (本番環境では無効化)
+  h2:
+    console:
+      enabled: false
+
+# Server Configuration
+server:
+  port: ${SERVER_PORT:8080}
+  servlet:
+    context-path: /api
+
+# Application Configuration
+app:
+  jwt:
+    secret: ${JWT_SECRET} # 本番環境では必ず設定
+    expiration: ${JWT_EXPIRATION:86400000}
+
+# Logging (本番環境用)
+logging:
+  level:
+    root: INFO
+    com.example: INFO
+    org.springframework.web: WARN
+    org.hibernate.SQL: WARN
+  file:
+    name: ${LOG_FILE_PATH:/var/log/kotlin-spring-boot-prac/application.log}
+  pattern:
+    file: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
