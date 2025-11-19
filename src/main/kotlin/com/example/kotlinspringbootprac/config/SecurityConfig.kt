@@ -1,5 +1,7 @@
 package com.example.kotlinspringbootprac.config
 
+import jakarta.annotation.PostConstruct
+import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
@@ -17,8 +19,14 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource
 @EnableWebSecurity
 class SecurityConfig(
     @Value("\${app.cors.allowed-origins}")
-    private val allowedOrigins: String
+    private val allowedOrigins: String,
 ) {
+    private val logger = LoggerFactory.getLogger(SecurityConfig::class.java)
+
+    @PostConstruct
+    fun logCorsConfiguration() {
+        logger.info("CORS allowed origins: $allowedOrigins")
+    }
 
     @Bean
     fun passwordEncoder(): PasswordEncoder {
