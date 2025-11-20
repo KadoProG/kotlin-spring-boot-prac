@@ -16,7 +16,7 @@ class UserController {
     @PreAuthorize("isAuthenticated()")
     fun getCurrentUser(authentication: Authentication): ResponseEntity<Map<String, Any>> {
         val user = authentication.principal as User
-        val response = mapOf(
+        val userResource = mapOf(
             "id" to user.id,
             "name" to user.name,
             "email" to user.email,
@@ -24,6 +24,7 @@ class UserController {
             "created_at" to user.createdAt.toString(),
             "updated_at" to user.updatedAt.toString(),
         )
+        val response = mapOf("user" to userResource)
         return ResponseEntity.ok(response)
     }
 }
