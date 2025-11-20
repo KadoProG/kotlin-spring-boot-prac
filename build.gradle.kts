@@ -32,8 +32,9 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-reflect")
     implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
 
-    // Database (H2 for development, can be replaced with MySQL/PostgreSQL)
-    runtimeOnly("com.h2database:h2")
+    // Database
+    runtimeOnly("com.h2database:h2") // H2 for development/testing
+    runtimeOnly("com.mysql:mysql-connector-j") // MySQL driver
 
     // JWT (for authentication)
     implementation("io.jsonwebtoken:jjwt-api:0.12.3")

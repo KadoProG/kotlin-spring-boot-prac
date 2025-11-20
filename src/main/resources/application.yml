@@ -3,6 +3,8 @@ spring:
     name: kotlin-spring-boot-prac
 
   # Database Configuration
+  # MySQL例: jdbc:mysql://localhost:3306/kotlinspringboot?useSSL=false&serverTimezone=UTC
+  # H2例: jdbc:h2:mem:testdb
   datasource:
     url: ${DB_URL:jdbc:h2:mem:testdb}
     driver-class-name: ${DB_DRIVER:org.h2.Driver}
@@ -10,8 +12,10 @@ spring:
     password: ${DB_PASSWORD:}
 
   # JPA Configuration
+  # MySQL用: org.hibernate.dialect.MySQLDialect
+  # H2用: org.hibernate.dialect.H2Dialect
   jpa:
-    database-platform: org.hibernate.dialect.H2Dialect
+    database-platform: ${DB_PLATFORM:org.hibernate.dialect.H2Dialect}
     hibernate:
       ddl-auto: update
     show-sql: true

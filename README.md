@@ -23,25 +23,20 @@ Java 21 がインストールされていることを確認してください。
 ./gradlew build
 ```
 
-### 3. 環境変数の設定（オプション）
+### 3. 環境変数の設定
 
 機密情報や環境固有の設定は環境変数で管理できます。
 
-プロジェクトルートに `.env` ファイルを作成し、以下の環境変数を設定できます：
+プロジェクトルートに `.env` ファイルを作成し、`.env.example` を参考に設定してください：
 
 ```bash
-# Database Configuration
-DB_URL=jdbc:h2:mem:testdb
-DB_DRIVER=org.h2.Driver
-DB_USERNAME=sa
-DB_PASSWORD=
-
-# JWT Configuration
-JWT_SECRET=your-secret-key-change-this-in-production
-JWT_EXPIRATION=86400000
+cp .env.example .env
+# .envファイルを編集して、使用するデータベースに合わせて設定を変更
 ```
 
 `.env` ファイルは `.gitignore` に含まれているため、Git にはコミットされません。
+
+詳細は「データベース設定」セクションを参照してください。
 
 ### 4. アプリケーションの起動
 
@@ -87,9 +82,35 @@ kotlin-spring-boot-prac/
 └── gradle.properties
 ```
 
-## 開発環境
+## データベース設定
 
-- H2 Database (インメモリ) を使用
+### MySQL を使用する場合
+
+1. Docker Compose で MySQL を起動：
+
+```bash
+docker-compose up -d
+```
+
+2. `.env` ファイルを作成し、以下の設定を追加：
+
+```bash
+DB_URL=jdbc:mysql://localhost:3306/kotlinspringboot?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true
+DB_DRIVER=com.mysql.cj.jdbc.Driver
+DB_USERNAME=springuser
+DB_PASSWORD=springpass
+DB_PLATFORM=org.hibernate.dialect.MySQLDialect
+```
+
+3. phpMyAdmin にアクセス（データベース管理ツール）：
+   - URL: `http://localhost:8080`
+   - Username: `springuser`
+   - Password: `springpass`
+
+### H2 Database を使用する場合（開発用）
+
+デフォルトでは H2 Database（インメモリ）が使用されます。
+
 - H2 Console: `http://localhost:8080/api/h2-console`
   - JDBC URL: `jdbc:h2:mem:testdb`
   - Username: `sa`
@@ -121,8 +142,9 @@ kotlin-spring-boot-prac/
 - Spring Boot 3.2.0
 - Spring Data JPA
 - Spring Security
-- H2 Database (開発環境)
+- MySQL / H2 Database
 - JWT (認証用)
+- Docker Compose (データベース用)
 
 ## 次のステップ
 
