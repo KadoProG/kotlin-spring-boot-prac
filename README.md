@@ -136,6 +136,47 @@ DB_PLATFORM=org.hibernate.dialect.MySQLDialect
 
 フォーマット違反があるかどうかをチェックするだけで、ファイルは修正されません。CI/CD パイプラインなどで使用できます。
 
+## Git Hooks (lefthook)
+
+このプロジェクトでは [lefthook](https://github.com/evilmartians/lefthook) を使用して Git フックを管理しています。
+
+### セットアップ
+
+1. lefthook のインストール（未インストールの場合）：
+
+```bash
+# macOS (Homebrew)
+brew install lefthook
+
+# その他の環境
+# https://github.com/evilmartians/lefthook#installation を参照
+```
+
+2. Git フックのインストール：
+
+```bash
+lefthook install
+```
+
+### 設定内容
+
+- **pre-commit**: コミット前に自動的に `ktlintFormat` を実行してコードをフォーマットします
+- **pre-push**: プッシュ前に `gradle build` を実行してビルドが成功することを確認します
+
+### フックのスキップ（緊急時のみ）
+
+特定のコミットでフックをスキップする必要がある場合：
+
+```bash
+# pre-commit をスキップ
+git commit --no-verify
+
+# pre-push をスキップ
+git push --no-verify
+```
+
+**注意**: 通常はフックをスキップしないことを推奨します。
+
 ## 技術スタック
 
 - Kotlin 1.9.20
