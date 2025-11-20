@@ -1,14 +1,18 @@
 package com.example.kotlinspringbootprac.config
 
 import jakarta.annotation.PostConstruct
+import jakarta.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletResponse
 import org.slf4j.LoggerFactory
 import org.springframework.beans.factory.annotation.Value
 import org.springframework.context.annotation.Bean
 import org.springframework.context.annotation.Configuration
+import org.springframework.security.access.AccessDeniedException
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity
 import org.springframework.security.config.annotation.web.builders.HttpSecurity
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity
 import org.springframework.security.config.http.SessionCreationPolicy
+import org.springframework.security.core.AuthenticationException
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.security.web.SecurityFilterChain
@@ -86,6 +90,31 @@ class SecurityConfig(
             }
             .sessionManagement { session ->
                 session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+            }
+            .exceptionHandling { exceptions ->
+                // 未認証（認証情報がない、または無効）の場合: 401 Unauthorized
+                exceptions.authenticationEntryPoint { _: HttpServletRequest, response: HttpServletResponse, _: AuthenticationException ->
+                    response.status = HttpServletResponse.SC_UNAUTHORIZED
+                    response.contentType = "application/json;charset=UTF-8"
+                    response.writer.write("""{"error":"Unauthorized","message":"認証が必要です"}""")
+                }
+                // 認証済みだが権限がない場合: 403 Forbidden
+                // 注意: @PreAuthorize("isAuthenticated()")で未認証の場合もAccessDeniedExceptionがスローされる可能性があるため、
+                // 認証状態を確認して未認証の場合は401を返す
+                exceptions.accessDeniedHandler { _: HttpServletRequest, response: HttpServletResponse, _: AccessDeniedException ->
+                    val authentication = org.springframework.security.core.context.SecurityContextHolder.getContext().authentication
+                    // 認証されていない場合は401を返す
+                    if (authentication == null || !authentication.isAuthenticated || authentication is org.springframework.security.authentication.AnonymousAuthenticationToken) {
+                        response.status = HttpServletResponse.SC_UNAUTHORIZED
+                        response.contentType = "application/json;charset=UTF-8"
+                        response.writer.write("""{"error":"Unauthorized","message":"認証が必要です"}""")
+                    } else {
+                        // 認証済みだが権限がない場合は403を返す
+                        response.status = HttpServletResponse.SC_FORBIDDEN
+                        response.contentType = "application/json;charset=UTF-8"
+                        response.writer.write("""{"error":"Forbidden","message":"アクセス権限がありません"}""")
+                    }
+                }
             }
             .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter::class.java)
             .headers { headers ->
