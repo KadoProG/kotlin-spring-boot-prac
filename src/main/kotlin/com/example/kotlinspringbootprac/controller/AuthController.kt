@@ -1,5 +1,6 @@
 package com.example.kotlinspringbootprac.controller
 
+import com.example.kotlinspringbootprac.dto.LoginRequest
 import com.example.kotlinspringbootprac.dto.RegisterRequest
 import com.example.kotlinspringbootprac.exception.ValidationException
 import com.example.kotlinspringbootprac.service.UserService
@@ -23,6 +24,21 @@ class AuthController(
     fun register(@Valid @RequestBody request: RegisterRequest): ResponseEntity<String> {
         userService.register(request)
         return ResponseEntity.status(HttpStatus.CREATED).body("User registered successfully")
+    }
+
+    @PostMapping("/login")
+    fun login(@Valid @RequestBody request: LoginRequest): ResponseEntity<Map<String, Any>> {
+        val (user, token) = userService.login(request)
+        val response = mapOf(
+            "message" to "Login successful",
+            "token" to token,
+            "user" to mapOf(
+                "id" to user.id,
+                "name" to user.name,
+                "email" to user.email,
+            ),
+        )
+        return ResponseEntity.ok(response)
     }
 
     @ExceptionHandler(MethodArgumentNotValidException::class)
