@@ -1,0 +1,14 @@
+pre-commit:
+  parallel: true
+  commands:
+    format:
+      run: ./gradlew ktlintFormat
+      stage_fixed: true
+
+pre-push:
+  parallel: true
+  commands:
+    build:
+      run: ./gradlew build
+      fail_text: |
+        Build failed! Please fix the errors before pushing.
