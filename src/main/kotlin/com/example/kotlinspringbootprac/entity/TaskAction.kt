@@ -7,29 +7,32 @@ import jakarta.persistence.FetchType
 import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
-import jakarta.persistence.OneToMany
+import jakarta.persistence.JoinColumn
+import jakarta.persistence.ManyToOne
 import jakarta.persistence.PreUpdate
 import jakarta.persistence.Table
 import java.time.LocalDateTime
 
 @Entity
-@Table(name = "users")
-data class User(
+@Table(name = "task_actions")
+data class TaskAction(
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     val id: Long = 0,
 
+    @Column(name = "task_id", nullable = false, updatable = false)
+    var taskId: Long,
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "task_id", insertable = false, updatable = false)
+    @JsonIgnore
+    var task: Task? = null,
+
     @Column(nullable = false, length = 255)
     var name: String,
 
-    @Column(nullable = false, unique = true, length = 255)
-    var email: String,
-
-    @Column(nullable = false)
-    var password: String,
-
-    @Column(name = "email_verified_at")
-    var emailVerifiedAt: LocalDateTime? = null,
+    @Column(name = "is_done", nullable = false)
+    var isDone: Boolean = false,
 
     @Column(name = "created_at", nullable = false, updatable = false)
     val createdAt: LocalDateTime = LocalDateTime.now(),
@@ -39,21 +42,9 @@ data class User(
 
     @Column(name = "deleted_at")
     var deletedAt: LocalDateTime? = null,
-
-    @OneToMany(mappedBy = "createdUser", fetch = FetchType.LAZY)
-    @JsonIgnore
-    var tasks: MutableList<Task> = mutableListOf(),
-
-    @OneToMany(mappedBy = "user", fetch = FetchType.LAZY)
-    @JsonIgnore
-    var assignedTasks: MutableList<TaskAssignedUser> = mutableListOf(),
 ) {
     @PreUpdate
     fun preUpdate() {
         updatedAt = LocalDateTime.now()
-    }
-
-    override fun toString(): String {
-        return "User(id=$id, name='$name', email='$email', emailVerifiedAt=$emailVerifiedAt, createdAt=$createdAt, updatedAt=$updatedAt, deletedAt=$deletedAt)"
     }
 }
