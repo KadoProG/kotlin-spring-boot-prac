@@ -136,6 +136,106 @@ DB_PLATFORM=org.hibernate.dialect.MySQLDialect
 
 フォーマット違反があるかどうかをチェックするだけで、ファイルは修正されません。CI/CD パイプラインなどで使用できます。
 
+## テスト
+
+このプロジェクトでは JUnit 5 と MockK を使用してテストを記述しています。
+
+### テストの実行
+
+```bash
+# すべてのテストを実行
+./gradlew test
+
+# 特定のテストクラスを実行
+./gradlew test --tests ExampleUnitTest
+./gradlew test --tests HealthControllerTest
+
+# テストをスキップしてビルド
+./gradlew build -x test
+```
+
+### テストレポートの確認
+
+テスト実行後、以下のパスで HTML レポートを確認できます：
+
+```bash
+# ブラウザで開く（macOS）
+open build/reports/tests/test/index.html
+
+# または直接ファイルを開く
+build/reports/tests/test/index.html
+```
+
+### テスト用設定
+
+テスト実行時は `application-test.yml` が自動的に使用されます：
+
+- H2 インメモリデータベースを使用
+- ログレベルを WARN に設定（テスト出力を簡潔に）
+- テスト用の JWT 設定
+
+### テストライブラリ
+
+- **JUnit 5**: テストフレームワーク
+- **MockK**: Kotlin 用のモッキングライブラリ
+- **Spring Boot Test**: Spring Boot アプリケーションのテストサポート
+- **Spring Security Test**: セキュリティ設定のテストサポート
+- **MockMvc**: Web 層のテスト用
+
+### テストの種類
+
+#### ユニットテスト
+
+```kotlin
+@ExtendWith(MockKExtension::class)
+class ExampleUnitTest {
+    @Test
+    fun `ユニットテストの例`() {
+        // MockKを使用したテスト
+    }
+}
+```
+
+#### コントローラーテスト
+
+```kotlin
+@WebMvcTest(HealthController::class)
+@ActiveProfiles("test")
+class HealthControllerTest {
+    @Autowired
+    private lateinit var mockMvc: MockMvc
+
+    @Test
+    fun `エンドポイントのテスト`() {
+        // MockMvcを使用したテスト
+    }
+}
+```
+
+#### 統合テスト
+
+```kotlin
+@SpringBootTest
+@ActiveProfiles("test")
+class IntegrationTest {
+    // 統合テストの実装
+}
+```
+
+### テストディレクトリ構造
+
+```
+src/test/
+├── kotlin/com/example/kotlinspringbootprac/
+│   ├── controller/
+│   │   └── HealthControllerTest.kt
+│   ├── service/
+│   ├── repository/
+│   └── ExampleUnitTest.kt
+└── resources/
+    └── application-test.yml
+```
+
 ## Git Hooks (lefthook)
 
 このプロジェクトでは [lefthook](https://github.com/evilmartians/lefthook) を使用して Git フックを管理しています。
