@@ -18,6 +18,7 @@ import org.springframework.http.MediaType
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.test.context.ActiveProfiles
 import org.springframework.test.web.servlet.MockMvc
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put
@@ -787,5 +788,223 @@ class TaskControllerTest {
         )
             .andExpect(status().isNotFound)
             .andExpect(jsonPath("$.message").value("User not found: 999"))
+    }
+
+    @Test
+    fun `deleteTask should return 204 when authenticated and authorized`() {
+        // Given - ユーザーを登録してログイン
+        val registerRequest = RegisterRequest(
+            name = "Test User",
+            email = "test@example.com",
+            password = "password123",
+            password_confirmation = "password123",
+        )
+        mockMvc.perform(
+            post("/v1/register")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(registerRequest)),
+        )
+
+        val loginRequest = LoginRequest(
+            email = "test@example.com",
+            password = "password123",
+        )
+
+        val loginResponse = mockMvc.perform(
+            post("/v1/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(loginRequest)),
+        )
+            .andExpect(status().isOk)
+            .andReturn()
+
+        val token = objectMapper.readTree(loginResponse.response.contentAsString)["token"].asText()
+
+        // タスクを作成
+        val user = userRepository.findByEmail("test@example.com").orElseThrow()
+        val task = Task(
+            title = "Test Task",
+            description = "Test Description",
+            isPublic = true,
+            isDone = false,
+            createdUserId = user.id,
+        )
+        val savedTask = taskRepository.save(task)
+
+        // When & Then
+        mockMvc.perform(
+            delete("/v1/tasks/${savedTask.id}")
+                .header("Authorization", "Bearer $token"),
+        )
+            .andExpect(status().isNoContent)
+
+        // 削除後、タスクが取得できないことを確認
+        mockMvc.perform(
+            get("/v1/tasks/${savedTask.id}")
+                .header("Authorization", "Bearer $token"),
+        )
+            .andExpect(status().isNotFound)
+    }
+
+    @Test
+    fun `deleteTask should return 404 when task not found`() {
+        // Given - ユーザーを登録してログイン
+        val registerRequest = RegisterRequest(
+            name = "Test User",
+            email = "test@example.com",
+            password = "password123",
+            password_confirmation = "password123",
+        )
+        mockMvc.perform(
+            post("/v1/register")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(registerRequest)),
+        )
+
+        val loginRequest = LoginRequest(
+            email = "test@example.com",
+            password = "password123",
+        )
+
+        val loginResponse = mockMvc.perform(
+            post("/v1/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(loginRequest)),
+        )
+            .andExpect(status().isOk)
+            .andReturn()
+
+        val token = objectMapper.readTree(loginResponse.response.contentAsString)["token"].asText()
+
+        // When & Then
+        mockMvc.perform(
+            delete("/v1/tasks/999")
+                .header("Authorization", "Bearer $token"),
+        )
+            .andExpect(status().isNotFound)
+            .andExpect(jsonPath("$.message").value("Task not found"))
+    }
+
+    @Test
+    fun `deleteTask should return 403 when user is not authorized`() {
+        // Given - 2人のユーザーを作成
+        val user1 = User(
+            name = "User 1",
+            email = "user1@example.com",
+            password = passwordEncoder.encode("password123"),
+        )
+        val savedUser1 = userRepository.save(user1)
+
+        val user2 = User(
+            name = "User 2",
+            email = "user2@example.com",
+            password = passwordEncoder.encode("password123"),
+        )
+        userRepository.save(user2)
+
+        // User1のタスクを作成
+        val task = Task(
+            title = "User1 Task",
+            description = "User1 Description",
+            isPublic = true,
+            isDone = false,
+            createdUserId = savedUser1.id,
+        )
+        val savedTask = taskRepository.save(task)
+
+        // User2でログイン
+        val loginRequest = LoginRequest(
+            email = "user2@example.com",
+            password = "password123",
+        )
+
+        val loginResponse = mockMvc.perform(
+            post("/v1/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(loginRequest)),
+        )
+            .andExpect(status().isOk)
+            .andReturn()
+
+        val token = objectMapper.readTree(loginResponse.response.contentAsString)["token"].asText()
+
+        // When & Then
+        mockMvc.perform(
+            delete("/v1/tasks/${savedTask.id}")
+                .header("Authorization", "Bearer $token"),
+        )
+            .andExpect(status().isForbidden)
+    }
+
+    @Test
+    fun `deleteTask should return 403 when not authenticated`() {
+        // When & Then
+        mockMvc.perform(delete("/v1/tasks/1"))
+            .andExpect(status().isForbidden)
+    }
+
+    @Test
+    fun `deleteTask should allow assigned user to delete task`() {
+        // Given - 2人のユーザーを作成
+        val user1 = User(
+            name = "User 1",
+            email = "user1@example.com",
+            password = passwordEncoder.encode("password123"),
+        )
+        val savedUser1 = userRepository.save(user1)
+
+        val user2 = User(
+            name = "User 2",
+            email = "user2@example.com",
+            password = passwordEncoder.encode("password123"),
+        )
+        val savedUser2 = userRepository.save(user2)
+
+        // User1のタスクを作成
+        val task = Task(
+            title = "User1 Task",
+            description = "User1 Description",
+            isPublic = true,
+            isDone = false,
+            createdUserId = savedUser1.id,
+        )
+        val savedTask = taskRepository.save(task)
+
+        // User2にタスクを割り当て
+        val assignedUser = TaskAssignedUser(
+            taskId = savedTask.id,
+            userId = savedUser2.id,
+        )
+        taskAssignedUserRepository.save(assignedUser)
+
+        // User2でログイン
+        val loginRequest = LoginRequest(
+            email = "user2@example.com",
+            password = "password123",
+        )
+
+        val loginResponse = mockMvc.perform(
+            post("/v1/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(loginRequest)),
+        )
+            .andExpect(status().isOk)
+            .andReturn()
+
+        val token = objectMapper.readTree(loginResponse.response.contentAsString)["token"].asText()
+
+        // When & Then
+        mockMvc.perform(
+            delete("/v1/tasks/${savedTask.id}")
+                .header("Authorization", "Bearer $token"),
+        )
+            .andExpect(status().isNoContent)
+
+        // 削除後、タスクが取得できないことを確認
+        mockMvc.perform(
+            get("/v1/tasks/${savedTask.id}")
+                .header("Authorization", "Bearer $token"),
+        )
+            .andExpect(status().isNotFound)
     }
 }
