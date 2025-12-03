@@ -1,8 +1,12 @@
 package com.example.kotlinspringbootprac.service
 
+import com.example.kotlinspringbootprac.dto.UpdateTaskRequest
 import com.example.kotlinspringbootprac.entity.Task
+import com.example.kotlinspringbootprac.entity.TaskAssignedUser
+import com.example.kotlinspringbootprac.exception.ModelNotFoundException
 import com.example.kotlinspringbootprac.repository.TaskAssignedUserRepository
 import com.example.kotlinspringbootprac.repository.TaskRepository
+import com.example.kotlinspringbootprac.repository.UserRepository
 import jakarta.persistence.criteria.Predicate
 import org.hibernate.Hibernate
 import org.springframework.data.domain.Sort
@@ -15,6 +19,7 @@ import java.time.LocalDateTime
 class TaskService(
     private val taskRepository: TaskRepository,
     private val taskAssignedUserRepository: TaskAssignedUserRepository,
+    private val userRepository: UserRepository,
 ) {
     @Transactional(readOnly = true)
     fun getUserTasks(
@@ -129,5 +134,76 @@ class TaskService(
         }
 
         return tasks
+    }
+
+    @Transactional(readOnly = true)
+    fun getTaskById(taskId: Long, userId: Long): Task {
+        val task = taskRepository.findById(taskId)
+            .orElseThrow { ModelNotFoundException("Task not found") }
+
+        // 削除されているタスクは取得できない
+        if (task.deletedAt != null) {
+            throw ModelNotFoundException("Task not found")
+        }
+
+        // 認可チェック: ユーザーが作成者または割り当てられたユーザーかどうか
+        val isCreatedByUser = task.createdUserId == userId
+        val isAssignedToUser = taskAssignedUserRepository.findByUserId(userId)
+            .any { it.taskId == taskId }
+
+        if (!isCreatedByUser && !isAssignedToUser) {
+            throw org.springframework.security.access.AccessDeniedException("You do not have permission to access this task")
+        }
+
+        // リレーションを読み込む
+        Hibernate.initialize(task.createdUser)
+        Hibernate.initialize(task.assignedUsers)
+        task.assignedUsers.forEach { assignedUser ->
+            Hibernate.initialize(assignedUser.user)
+        }
+
+        return task
+    }
+
+    @Transactional
+    fun updateTask(taskId: Long, userId: Long, request: UpdateTaskRequest): Task {
+        val task = getTaskById(taskId, userId)
+
+        // 更新可能なフィールドを更新
+        request.title?.let { task.title = it }
+        request.is_public?.let { task.isPublic = it }
+        request.description?.let { task.description = it }
+        request.expired_at?.let { task.expiredAt = it }
+        request.is_done?.let { task.isDone = it }
+
+        // assigned_user_idsが指定されている場合は更新
+        request.assigned_user_ids?.let { assignedUserIds ->
+            // 既存の割り当てを削除
+            task.assignedUsers.clear()
+
+            // 新しい割り当てを追加
+            assignedUserIds.forEach { assignedUserId ->
+                val user = userRepository.findById(assignedUserId)
+                    .orElseThrow { ModelNotFoundException("User not found: $assignedUserId") }
+                val taskAssignedUser = TaskAssignedUser(
+                    taskId = task.id,
+                    userId = assignedUserId,
+                )
+                taskAssignedUser.task = task
+                taskAssignedUser.user = user
+                task.assignedUsers.add(taskAssignedUser)
+            }
+        }
+
+        val savedTask = taskRepository.save(task)
+
+        // リレーションを読み込む
+        Hibernate.initialize(savedTask.createdUser)
+        Hibernate.initialize(savedTask.assignedUsers)
+        savedTask.assignedUsers.forEach { assignedUser ->
+            Hibernate.initialize(assignedUser.user)
+        }
+
+        return savedTask
     }
 }
