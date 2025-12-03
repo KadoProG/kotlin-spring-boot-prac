@@ -1,5 +1,6 @@
 package com.example.kotlinspringbootprac.service
 
+import com.example.kotlinspringbootprac.dto.CreateTaskRequest
 import com.example.kotlinspringbootprac.dto.UpdateTaskRequest
 import com.example.kotlinspringbootprac.entity.Task
 import com.example.kotlinspringbootprac.entity.TaskAssignedUser
@@ -163,6 +164,45 @@ class TaskService(
         }
 
         return task
+    }
+
+    @Transactional
+    fun createTask(userId: Long, request: CreateTaskRequest): Task {
+        // タスクを作成
+        val task = Task(
+            title = request.title,
+            description = request.description,
+            isPublic = requireNotNull(request.is_public) { "is_public is required" },
+            isDone = false,
+            expiredAt = request.expired_at,
+            createdUserId = userId,
+        )
+
+        val savedTask = taskRepository.save(task)
+
+        // assigned_user_idsが指定されている場合は割り当てを追加
+        request.assigned_user_ids?.forEach { assignedUserId ->
+            val user = userRepository.findById(assignedUserId)
+                .orElseThrow { ModelNotFoundException("User not found: $assignedUserId") }
+            val taskAssignedUser = TaskAssignedUser(
+                taskId = savedTask.id,
+                userId = assignedUserId,
+            )
+            taskAssignedUser.task = savedTask
+            taskAssignedUser.user = user
+            savedTask.assignedUsers.add(taskAssignedUser)
+        }
+
+        val finalTask = taskRepository.save(savedTask)
+
+        // リレーションを読み込む
+        Hibernate.initialize(finalTask.createdUser)
+        Hibernate.initialize(finalTask.assignedUsers)
+        finalTask.assignedUsers.forEach { assignedUser ->
+            Hibernate.initialize(assignedUser.user)
+        }
+
+        return finalTask
     }
 
     @Transactional
