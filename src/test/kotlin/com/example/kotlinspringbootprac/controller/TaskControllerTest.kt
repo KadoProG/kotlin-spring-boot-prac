@@ -167,7 +167,7 @@ class TaskControllerTest {
             email = "user2@example.com",
             password = passwordEncoder.encode("password123"),
         )
-        val savedUser2 = userRepository.save(user2)
+        userRepository.save(user2)
 
         // User1のタスクを作成
         val task = Task(
@@ -335,7 +335,7 @@ class TaskControllerTest {
             email = "user2@example.com",
             password = passwordEncoder.encode("password123"),
         )
-        val savedUser2 = userRepository.save(user2)
+        userRepository.save(user2)
 
         // User1のタスクを作成
         val task = Task(
@@ -521,5 +521,271 @@ class TaskControllerTest {
         )
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.task.is_done").value(true))
+    }
+
+    @Test
+    fun `createTask should return 200 with created task data when authenticated`() {
+        // Given - ユーザーを登録してログイン
+        val registerRequest = RegisterRequest(
+            name = "Test User",
+            email = "test@example.com",
+            password = "password123",
+            password_confirmation = "password123",
+        )
+        mockMvc.perform(
+            post("/v1/register")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(registerRequest)),
+        )
+
+        val loginRequest = LoginRequest(
+            email = "test@example.com",
+            password = "password123",
+        )
+
+        val loginResponse = mockMvc.perform(
+            post("/v1/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(loginRequest)),
+        )
+            .andExpect(status().isOk)
+            .andReturn()
+
+        val token = objectMapper.readTree(loginResponse.response.contentAsString)["token"].asText()
+
+        // 作成リクエスト
+        val createRequest = mapOf(
+            "title" to "New Task",
+            "description" to "New Description",
+            "is_public" to true,
+            "is_done" to false,
+        )
+
+        // When & Then
+        mockMvc.perform(
+            post("/v1/tasks")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(createRequest))
+                .header("Authorization", "Bearer $token"),
+        )
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.task.id").exists())
+            .andExpect(jsonPath("$.task.title").value("New Task"))
+            .andExpect(jsonPath("$.task.description").value("New Description"))
+            .andExpect(jsonPath("$.task.is_public").value(true))
+            .andExpect(jsonPath("$.task.is_done").value(false))
+            .andExpect(jsonPath("$.task.created_at").exists())
+            .andExpect(jsonPath("$.task.updated_at").exists())
+            .andExpect(jsonPath("$.task.created_user").exists())
+            .andExpect(jsonPath("$.task.assigned_users").isArray)
+    }
+
+    @Test
+    fun `createTask should return 403 when not authenticated`() {
+        // 作成リクエスト
+        val createRequest = mapOf(
+            "title" to "New Task",
+            "is_public" to true,
+        )
+
+        // When & Then
+        mockMvc.perform(
+            post("/v1/tasks")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(createRequest)),
+        )
+            .andExpect(status().isForbidden)
+    }
+
+    @Test
+    fun `createTask should return 400 when title is missing`() {
+        // Given - ユーザーを登録してログイン
+        val registerRequest = RegisterRequest(
+            name = "Test User",
+            email = "test@example.com",
+            password = "password123",
+            password_confirmation = "password123",
+        )
+        mockMvc.perform(
+            post("/v1/register")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(registerRequest)),
+        )
+
+        val loginRequest = LoginRequest(
+            email = "test@example.com",
+            password = "password123",
+        )
+
+        val loginResponse = mockMvc.perform(
+            post("/v1/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(loginRequest)),
+        )
+            .andExpect(status().isOk)
+            .andReturn()
+
+        val token = objectMapper.readTree(loginResponse.response.contentAsString)["token"].asText()
+
+        // 作成リクエスト（titleなし）
+        val createRequest = mapOf(
+            "is_public" to true,
+        )
+
+        // When & Then
+        mockMvc.perform(
+            post("/v1/tasks")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(createRequest))
+                .header("Authorization", "Bearer $token"),
+        )
+            .andExpect(status().isUnprocessableEntity)
+    }
+
+    @Test
+    fun `createTask should return 422 when is_public is missing`() {
+        // Given - ユーザーを登録してログイン
+        val registerRequest = RegisterRequest(
+            name = "Test User",
+            email = "test@example.com",
+            password = "password123",
+            password_confirmation = "password123",
+        )
+        mockMvc.perform(
+            post("/v1/register")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(registerRequest)),
+        )
+
+        val loginRequest = LoginRequest(
+            email = "test@example.com",
+            password = "password123",
+        )
+
+        val loginResponse = mockMvc.perform(
+            post("/v1/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(loginRequest)),
+        )
+            .andExpect(status().isOk)
+            .andReturn()
+
+        val token = objectMapper.readTree(loginResponse.response.contentAsString)["token"].asText()
+
+        // 作成リクエスト（is_publicなし）
+        val createRequest = mapOf(
+            "title" to "New Task",
+        )
+
+        // When & Then
+        mockMvc.perform(
+            post("/v1/tasks")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(createRequest))
+                .header("Authorization", "Bearer $token"),
+        )
+            .andExpect(status().isUnprocessableEntity)
+    }
+
+    @Test
+    fun `createTask should create task with assigned users`() {
+        // Given - 2人のユーザーを作成
+        val user1 = User(
+            name = "User 1",
+            email = "user1@example.com",
+            password = passwordEncoder.encode("password123"),
+        )
+        userRepository.save(user1)
+
+        val user2 = User(
+            name = "User 2",
+            email = "user2@example.com",
+            password = passwordEncoder.encode("password123"),
+        )
+        val savedUser2 = userRepository.save(user2)
+
+        // User1でログイン
+        val loginRequest = LoginRequest(
+            email = "user1@example.com",
+            password = "password123",
+        )
+
+        val loginResponse = mockMvc.perform(
+            post("/v1/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(loginRequest)),
+        )
+            .andExpect(status().isOk)
+            .andReturn()
+
+        val token = objectMapper.readTree(loginResponse.response.contentAsString)["token"].asText()
+
+        // 作成リクエスト（assigned_user_idsを含む）
+        val createRequest = mapOf(
+            "title" to "New Task",
+            "is_public" to true,
+            "assigned_user_ids" to listOf(savedUser2.id),
+        )
+
+        // When & Then
+        mockMvc.perform(
+            post("/v1/tasks")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(createRequest))
+                .header("Authorization", "Bearer $token"),
+        )
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.task.title").value("New Task"))
+            .andExpect(jsonPath("$.task.assigned_users").isArray)
+            .andExpect(jsonPath("$.task.assigned_users.length()").value(1))
+            .andExpect(jsonPath("$.task.assigned_users[0].id").value(savedUser2.id))
+    }
+
+    @Test
+    fun `createTask should return 404 when assigned user not found`() {
+        // Given - ユーザーを登録してログイン
+        val registerRequest = RegisterRequest(
+            name = "Test User",
+            email = "test@example.com",
+            password = "password123",
+            password_confirmation = "password123",
+        )
+        mockMvc.perform(
+            post("/v1/register")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(registerRequest)),
+        )
+
+        val loginRequest = LoginRequest(
+            email = "test@example.com",
+            password = "password123",
+        )
+
+        val loginResponse = mockMvc.perform(
+            post("/v1/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(loginRequest)),
+        )
+            .andExpect(status().isOk)
+            .andReturn()
+
+        val token = objectMapper.readTree(loginResponse.response.contentAsString)["token"].asText()
+
+        // 作成リクエスト（存在しないユーザーIDを含む）
+        val createRequest = mapOf(
+            "title" to "New Task",
+            "is_public" to true,
+            "assigned_user_ids" to listOf(999L),
+        )
+
+        // When & Then
+        mockMvc.perform(
+            post("/v1/tasks")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(createRequest))
+                .header("Authorization", "Bearer $token"),
+        )
+            .andExpect(status().isNotFound)
+            .andExpect(jsonPath("$.message").value("User not found: 999"))
     }
 }
