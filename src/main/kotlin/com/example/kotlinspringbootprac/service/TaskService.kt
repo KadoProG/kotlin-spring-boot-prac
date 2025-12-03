@@ -246,4 +246,11 @@ class TaskService(
 
         return savedTask
     }
+
+    @Transactional
+    fun deleteTask(taskId: Long, userId: Long) {
+        val task = getTaskById(taskId, userId)
+        task.deletedAt = LocalDateTime.now()
+        taskRepository.save(task)
+    }
 }

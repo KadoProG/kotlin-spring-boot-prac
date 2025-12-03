@@ -15,6 +15,7 @@ import org.springframework.security.access.AccessDeniedException
 import org.springframework.security.access.prepost.PreAuthorize
 import org.springframework.security.core.Authentication
 import org.springframework.web.bind.MethodArgumentNotValidException
+import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.web.bind.annotation.ExceptionHandler
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PathVariable
@@ -68,6 +69,17 @@ class TaskController(
         val taskResource = mapTaskToResource(task)
         val response = mapOf("task" to taskResource)
         return ResponseEntity.ok(response)
+    }
+
+    @DeleteMapping("/{taskId}")
+    @PreAuthorize("isAuthenticated()")
+    fun deleteTask(
+        @PathVariable taskId: Long,
+        authentication: Authentication,
+    ): ResponseEntity<Void> {
+        val user = authentication.principal as User
+        taskService.deleteTask(taskId, user.id)
+        return ResponseEntity.noContent().build()
     }
 
     private fun mapTaskToResource(task: Task): Map<String, Any?> {
