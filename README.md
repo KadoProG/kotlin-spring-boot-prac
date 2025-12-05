@@ -2,6 +2,29 @@
 
 Kotlin + Spring Boot で実装された TODO アプリケーション API
 
+---
+
+## [KadoProG](https://github.com/KadoProG) の TODO アプリケーションシリーズ
+
+### v1
+
+ユーザ認証と TODO 管理ができるアプリケーション。
+
+- **React**（[todo-frontend-react](https://github.com/KadoProG/todo-frontend-react)）
+- **Laravel**（[laravel-todo-app](https://github.com/KadoProG/laravel-todo-app)）
+
+### v2
+
+ユーザ認証と、作成者と担当者の概念を加えた TODO アプリケーション。TODO には小タスクを持たせられる。
+
+- **React + Vite**（[todo-frontend-react-v2](https://github.com/KadoProG/todo-frontend-react-v2)）
+- **Next.js**（[nextjs-practice-todo](https://github.com/KadoProG/nextjs-practice-todo)）
+- **Vue**（[vue-practice-todo-app](https://github.com/KadoProG/vue-practice-todo-app)）
+- **Laravel**（[laravel-todo-app-v2](https://github.com/KadoProG/laravel-todo-app-v2)）
+- **Kotlin Spring Boot**（[kotlin-spring-boot-prac](https://github.com/KadoProG/kotlin-spring-boot-prac)） ← 本リポジトリ
+
+---
+
 ## 環境要件
 
 - Java 21
