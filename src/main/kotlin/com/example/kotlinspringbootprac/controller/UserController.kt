@@ -2,6 +2,7 @@ package com.example.kotlinspringbootprac.controller
 
 import com.example.kotlinspringbootprac.entity.Task
 import com.example.kotlinspringbootprac.entity.User
+import com.example.kotlinspringbootprac.repository.UserRepository
 import com.example.kotlinspringbootprac.service.TaskService
 import org.springframework.format.annotation.DateTimeFormat
 import org.springframework.http.ResponseEntity
@@ -17,20 +18,25 @@ import java.time.LocalDateTime
 @RequestMapping("/v1/users")
 class UserController(
     private val taskService: TaskService,
+    private val userRepository: UserRepository,
 ) {
+
+    @GetMapping
+    @PreAuthorize("isAuthenticated()")
+    fun getUsers(): ResponseEntity<Map<String, Any>> {
+        val users = userRepository.findByDeletedAtIsNull()
+        val userResources = users.map { user ->
+            mapUserToResource(user)
+        }
+        val response = mapOf("users" to userResources)
+        return ResponseEntity.ok(response)
+    }
 
     @GetMapping("/me")
     @PreAuthorize("isAuthenticated()")
     fun getCurrentUser(authentication: Authentication): ResponseEntity<Map<String, Any>> {
         val user = authentication.principal as User
-        val userResource = mapOf(
-            "id" to user.id,
-            "name" to user.name,
-            "email" to user.email,
-            "email_verified_at" to (user.emailVerifiedAt?.toString() ?: ""),
-            "created_at" to user.createdAt.toString(),
-            "updated_at" to user.updatedAt.toString(),
-        )
+        val userResource = mapUserToResource(user)
         val response = mapOf("user" to userResource)
         return ResponseEntity.ok(response)
     }
@@ -71,6 +77,17 @@ class UserController(
 
         val response = mapOf("tasks" to taskResources)
         return ResponseEntity.ok(response)
+    }
+
+    private fun mapUserToResource(user: User): Map<String, Any> {
+        return mapOf(
+            "id" to user.id,
+            "name" to user.name,
+            "email" to user.email,
+            "email_verified_at" to (user.emailVerifiedAt?.toString() ?: ""),
+            "created_at" to user.createdAt.toString(),
+            "updated_at" to user.updatedAt.toString(),
+        )
     }
 
     private fun mapTaskToResource(task: Task): Map<String, Any?> {

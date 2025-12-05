@@ -357,4 +357,111 @@ class UserControllerTest {
             .andExpect(jsonPath("$.tasks.length()").value(1))
             .andExpect(jsonPath("$.tasks[0].title").value("Done Task"))
     }
+
+    @Test
+    fun `getUsers should return 200 with users list when authenticated`() {
+        // Given - 複数のユーザーを作成
+        val user1 = User(
+            name = "User 1",
+            email = "user1@example.com",
+            password = passwordEncoder.encode("password123"),
+        )
+        userRepository.save(user1)
+
+        val user2 = User(
+            name = "User 2",
+            email = "user2@example.com",
+            password = passwordEncoder.encode("password123"),
+        )
+        userRepository.save(user2)
+
+        // User1でログイン
+        val loginRequest = LoginRequest(
+            email = "user1@example.com",
+            password = "password123",
+        )
+
+        val loginResponse = mockMvc.perform(
+            post("/v1/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(loginRequest)),
+        )
+            .andExpect(status().isOk)
+            .andReturn()
+
+        val token = objectMapper.readTree(loginResponse.response.contentAsString)["token"].asText()
+
+        // When & Then
+        mockMvc.perform(
+            get("/v1/users")
+                .header("Authorization", "Bearer $token"),
+        )
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.users").isArray)
+            .andExpect(jsonPath("$.users.length()").value(2))
+            .andExpect(jsonPath("$.users[0].id").exists())
+            .andExpect(jsonPath("$.users[0].name").exists())
+            .andExpect(jsonPath("$.users[0].email").exists())
+            .andExpect(jsonPath("$.users[0].email_verified_at").exists())
+            .andExpect(jsonPath("$.users[0].created_at").exists())
+            .andExpect(jsonPath("$.users[0].updated_at").exists())
+            .andExpect(jsonPath("$.users[1].id").exists())
+            .andExpect(jsonPath("$.users[1].name").exists())
+            .andExpect(jsonPath("$.users[1].email").exists())
+    }
+
+    @Test
+    fun `getUsers should return 401 when not authenticated`() {
+        // When & Then
+        mockMvc.perform(get("/v1/users"))
+            .andExpect(status().isUnauthorized)
+    }
+
+    @Test
+    fun `getUsers should not return deleted users`() {
+        // Given - ユーザーを作成
+        val user1 = User(
+            name = "User 1",
+            email = "user1@example.com",
+            password = passwordEncoder.encode("password123"),
+        )
+        val savedUser1 = userRepository.save(user1)
+
+        val user2 = User(
+            name = "User 2",
+            email = "user2@example.com",
+            password = passwordEncoder.encode("password123"),
+        )
+        userRepository.save(user2)
+
+        // User1を削除（soft delete）
+        savedUser1.deletedAt = java.time.LocalDateTime.now()
+        userRepository.save(savedUser1)
+
+        // User2でログイン
+        val loginRequest = LoginRequest(
+            email = "user2@example.com",
+            password = "password123",
+        )
+
+        val loginResponse = mockMvc.perform(
+            post("/v1/login")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(loginRequest)),
+        )
+            .andExpect(status().isOk)
+            .andReturn()
+
+        val token = objectMapper.readTree(loginResponse.response.contentAsString)["token"].asText()
+
+        // When & Then - 削除されていないユーザーのみが返される
+        mockMvc.perform(
+            get("/v1/users")
+                .header("Authorization", "Bearer $token"),
+        )
+            .andExpect(status().isOk)
+            .andExpect(jsonPath("$.users").isArray)
+            .andExpect(jsonPath("$.users.length()").value(1))
+            .andExpect(jsonPath("$.users[0].email").value("user2@example.com"))
+    }
 }
