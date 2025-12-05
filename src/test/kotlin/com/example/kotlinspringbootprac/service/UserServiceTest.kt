@@ -171,4 +171,48 @@ class UserServiceTest {
         verify { passwordEncoder.matches(request.password, user.password) }
         verify(exactly = 0) { jwtService.generateToken(any(), any()) }
     }
+
+    @Test
+    fun `getUsers should return only non-deleted users`() {
+        // Given
+        val user1 = User(
+            id = 1L,
+            name = "User 1",
+            email = "user1@example.com",
+            password = "encoded_password",
+        )
+        // user2は削除されたユーザー（deletedAtが設定されている）だが、
+        // RepositoryのfindByDeletedAtIsNull()が削除されていないユーザーのみを返すため、
+        // 結果には含まれない
+        val user3 = User(
+            id = 3L,
+            name = "User 3",
+            email = "user3@example.com",
+            password = "encoded_password",
+        )
+
+        every { userRepository.findByDeletedAtIsNull() } returns listOf(user1, user3)
+
+        // When
+        val result = userService.getUsers()
+
+        // Then
+        assertEquals(2, result.size)
+        assertEquals(user1.id, result[0].id)
+        assertEquals(user3.id, result[1].id)
+        verify { userRepository.findByDeletedAtIsNull() }
+    }
+
+    @Test
+    fun `getUsers should return empty list when no users exist`() {
+        // Given
+        every { userRepository.findByDeletedAtIsNull() } returns emptyList()
+
+        // When
+        val result = userService.getUsers()
+
+        // Then
+        assertEquals(0, result.size)
+        verify { userRepository.findByDeletedAtIsNull() }
+    }
 }
