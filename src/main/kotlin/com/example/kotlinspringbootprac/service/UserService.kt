@@ -52,4 +52,8 @@ class UserService(
 
         return Pair(user, token)
     }
+
+    fun getUsers(): List<User> {
+        return userRepository.findByDeletedAtIsNull()
+    }
 }

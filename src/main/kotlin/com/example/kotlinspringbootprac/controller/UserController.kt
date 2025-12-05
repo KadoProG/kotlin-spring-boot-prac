@@ -2,8 +2,8 @@ package com.example.kotlinspringbootprac.controller
 
 import com.example.kotlinspringbootprac.entity.Task
 import com.example.kotlinspringbootprac.entity.User
-import com.example.kotlinspringbootprac.repository.UserRepository
 import com.example.kotlinspringbootprac.service.TaskService
+import com.example.kotlinspringbootprac.service.UserService
 import org.springframework.format.annotation.DateTimeFormat
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
@@ -18,13 +18,13 @@ import java.time.LocalDateTime
 @RequestMapping("/v1/users")
 class UserController(
     private val taskService: TaskService,
-    private val userRepository: UserRepository,
+    private val userService: UserService,
 ) {
 
     @GetMapping
     @PreAuthorize("isAuthenticated()")
     fun getUsers(): ResponseEntity<Map<String, Any>> {
-        val users = userRepository.findByDeletedAtIsNull()
+        val users = userService.getUsers()
         val userResources = users.map { user ->
             mapUserToResource(user)
         }
