@@ -27,6 +27,7 @@ dependencies {
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     implementation("org.springframework.boot:spring-boot-starter-validation")
     implementation("org.springframework.boot:spring-boot-starter-security")
+    implementation("org.springframework.boot:spring-boot-starter-websocket")
 
     // Kotlin
     implementation("org.jetbrains.kotlin:kotlin-reflect")
@@ -43,6 +44,9 @@ dependencies {
 
     // .env file support
     implementation("io.github.cdimascio:dotenv-java:3.0.0")
+
+    // API Documentation (SpringDoc OpenAPI)
+    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.3.0")
 
     // Testing
     testImplementation("org.springframework.boot:spring-boot-starter-test")

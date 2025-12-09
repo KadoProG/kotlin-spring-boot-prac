@@ -85,6 +85,16 @@ export $(cat .env | xargs) && ./gradlew bootRun
 curl http://localhost:8080/api/v1/health
 ```
 
+### API ドキュメント (Swagger UI)
+
+アプリケーション起動後、以下の URL で API ドキュメントを確認できます：
+
+- **Swagger UI**: `http://localhost:8080/api/swagger-ui.html`
+- **OpenAPI JSON**: `http://localhost:8080/api/api-docs`
+- **OpenAPI YAML**: `http://localhost:8080/api/api-docs.yaml`
+
+Swagger UI では、すべての API エンドポイントをブラウザ上で確認・テストできます。
+
 ## プロジェクト構造
 
 ```
