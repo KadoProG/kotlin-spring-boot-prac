@@ -43,6 +43,17 @@ app:
   cors:
     allowed-origins: ${FRONTEND_URL}
 
+# SpringDoc OpenAPI Configuration
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: true
+    operations-sorter: method
+    tags-sorter: alpha
+  show-actuator: false
+
 # Logging
 logging:
   level:

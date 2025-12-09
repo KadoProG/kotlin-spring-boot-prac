@@ -83,7 +83,16 @@ class SecurityConfig(
                 auth
                     // 認証不要なエンドポイント（公開API）
                     // 新しい公開APIを追加する場合は、ここに追加する
-                    .requestMatchers("/v1/health", "/v1/register", "/v1/login", "/h2-console/**").permitAll()
+                    .requestMatchers(
+                        "/v1/health",
+                        "/v1/register",
+                        "/v1/login",
+                        "/h2-console/**",
+                        "/swagger-ui.html",
+                        "/swagger-ui/**",
+                        "/api-docs/**",
+                        "/v3/api-docs/**",
+                    ).permitAll()
                     // デフォルトは認証不要（認証が必要なエンドポイントは@PreAuthorize("isAuthenticated()")で制御）
                     // 存在しないエンドポイントは404を返すため許可
                     .anyRequest().permitAll()

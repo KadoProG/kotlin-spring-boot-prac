@@ -45,6 +45,9 @@ dependencies {
     // .env file support
     implementation("io.github.cdimascio:dotenv-java:3.0.0")
 
+    // API Documentation (SpringDoc OpenAPI)
+    implementation("org.springdoc:springdoc-openapi-starter-webmvc-ui:2.3.0")
+
     // Testing
     testImplementation("org.springframework.boot:spring-boot-starter-test")
     testImplementation("org.springframework.security:spring-security-test")

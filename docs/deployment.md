@@ -22,6 +22,13 @@ ls -lh build/libs/
 通常、以下のようなファイルが生成されます：
 
 - `kotlin-spring-boot-prac-0.0.1-SNAPSHOT.jar` (実行可能 JAR)
+  - Spring Boot の `bootJar` タスクで生成される実行可能な JAR
+  - 依存関係を含むため、単独で実行可能
+  - **デプロイ時はこのファイルを使用**
+- `kotlin-spring-boot-prac-0.0.1-SNAPSHOT-plain.jar` (プレーン JAR)
+  - 標準の Gradle `jar` タスクで生成される JAR
+  - 依存関係を含まない（クラスファイルのみ）
+  - 通常は使用しない（ライブラリとして配布する場合などに使用）
 
 ## 2. デプロイ方法
 
