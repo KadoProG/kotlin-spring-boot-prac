@@ -124,6 +124,12 @@ class TaskService(
 
         // リレーションを読み込む
         tasks.forEach { task ->
+            // createdUserを明示的に設定（LAZYローディングの場合に備えて）
+            if (!Hibernate.isInitialized(task.createdUser)) {
+                val createdUser = userRepository.findById(task.createdUserId)
+                    .orElseThrow { ModelNotFoundException("User not found: ${task.createdUserId}") }
+                task.createdUser = createdUser
+            }
             // createdUserを読み込む
             Hibernate.initialize(task.createdUser)
             // assignedUsersを読み込む
@@ -156,6 +162,13 @@ class TaskService(
             throw org.springframework.security.access.AccessDeniedException("You do not have permission to access this task")
         }
 
+        // createdUserを明示的に設定（LAZYローディングの場合に備えて）
+        if (!Hibernate.isInitialized(task.createdUser)) {
+            val createdUser = userRepository.findById(task.createdUserId)
+                .orElseThrow { ModelNotFoundException("User not found: ${task.createdUserId}") }
+            task.createdUser = createdUser
+        }
+
         // リレーションを読み込む
         Hibernate.initialize(task.createdUser)
         Hibernate.initialize(task.assignedUsers)
@@ -168,6 +181,10 @@ class TaskService(
 
     @Transactional
     fun createTask(userId: Long, request: CreateTaskRequest): Task {
+        // 作成者ユーザーを取得
+        val createdUser = userRepository.findById(userId)
+            .orElseThrow { ModelNotFoundException("User not found: $userId") }
+
         // タスクを作成
         val task = Task(
             title = request.title,
@@ -176,6 +193,7 @@ class TaskService(
             isDone = false,
             expiredAt = request.expired_at,
             createdUserId = userId,
+            createdUser = createdUser,
         )
 
         val savedTask = taskRepository.save(task)

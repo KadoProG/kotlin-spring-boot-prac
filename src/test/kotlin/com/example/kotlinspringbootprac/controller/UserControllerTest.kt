@@ -92,7 +92,7 @@ class UserControllerTest {
             .andExpect(jsonPath("$.user.id").exists())
             .andExpect(jsonPath("$.user.name").value("Test User"))
             .andExpect(jsonPath("$.user.email").value("test@example.com"))
-            .andExpect(jsonPath("$.user.email_verified_at").exists())
+            .andExpect(jsonPath("$.user.email_verified_at").value(org.hamcrest.Matchers.nullValue()))
             .andExpect(jsonPath("$.user.created_at").exists())
             .andExpect(jsonPath("$.user.updated_at").exists())
     }
@@ -142,6 +142,7 @@ class UserControllerTest {
             isPublic = true,
             isDone = false,
             createdUserId = user.id,
+            createdUser = user,
         )
         taskRepository.save(task)
 
@@ -188,6 +189,7 @@ class UserControllerTest {
             isPublic = true,
             isDone = false,
             createdUserId = savedUser1.id,
+            createdUser = savedUser1,
         )
         taskRepository.save(task1)
 
@@ -198,6 +200,7 @@ class UserControllerTest {
             isPublic = true,
             isDone = false,
             createdUserId = savedUser2.id,
+            createdUser = savedUser2,
         )
         taskRepository.save(task2)
 
@@ -252,6 +255,7 @@ class UserControllerTest {
             isPublic = true,
             isDone = false,
             createdUserId = savedUser1.id,
+            createdUser = savedUser1,
         )
         val savedTask = taskRepository.save(task)
 
@@ -334,6 +338,7 @@ class UserControllerTest {
             isPublic = true,
             isDone = true,
             createdUserId = user.id,
+            createdUser = user,
         )
         taskRepository.save(task1)
 
@@ -343,6 +348,7 @@ class UserControllerTest {
             isPublic = true,
             isDone = false,
             createdUserId = user.id,
+            createdUser = user,
         )
         taskRepository.save(task2)
 
@@ -402,7 +408,7 @@ class UserControllerTest {
             .andExpect(jsonPath("$.users[0].id").exists())
             .andExpect(jsonPath("$.users[0].name").exists())
             .andExpect(jsonPath("$.users[0].email").exists())
-            .andExpect(jsonPath("$.users[0].email_verified_at").exists())
+            .andExpect(jsonPath("$.users[0].email_verified_at").value(org.hamcrest.Matchers.nullValue()))
             .andExpect(jsonPath("$.users[0].created_at").exists())
             .andExpect(jsonPath("$.users[0].updated_at").exists())
             .andExpect(jsonPath("$.users[1].id").exists())

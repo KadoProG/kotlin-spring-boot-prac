@@ -1,5 +1,10 @@
 package com.example.kotlinspringbootprac.controller
 
+import com.example.kotlinspringbootprac.dto.TaskListResponse
+import com.example.kotlinspringbootprac.dto.TaskResponse
+import com.example.kotlinspringbootprac.dto.UserInfoResponse
+import com.example.kotlinspringbootprac.dto.UserListResponse
+import com.example.kotlinspringbootprac.dto.UserResponse
 import com.example.kotlinspringbootprac.entity.Task
 import com.example.kotlinspringbootprac.entity.User
 import com.example.kotlinspringbootprac.service.TaskService
@@ -23,21 +28,21 @@ class UserController(
 
     @GetMapping
     @PreAuthorize("isAuthenticated()")
-    fun getUsers(): ResponseEntity<Map<String, Any>> {
+    fun getUsers(): ResponseEntity<UserListResponse> {
         val users = userService.getUsers()
         val userResources = users.map { user ->
-            mapUserToResource(user)
+            mapUserToResponse(user)
         }
-        val response = mapOf("users" to userResources)
+        val response = UserListResponse(users = userResources)
         return ResponseEntity.ok(response)
     }
 
     @GetMapping("/me")
     @PreAuthorize("isAuthenticated()")
-    fun getCurrentUser(authentication: Authentication): ResponseEntity<Map<String, Any>> {
+    fun getCurrentUser(authentication: Authentication): ResponseEntity<UserInfoResponse> {
         val user = authentication.principal as User
-        val userResource = mapUserToResource(user)
-        val response = mapOf("user" to userResource)
+        val userResource = mapUserToResponse(user)
+        val response = UserInfoResponse(user = userResource)
         return ResponseEntity.ok(response)
     }
 
@@ -55,7 +60,7 @@ class UserController(
         @RequestParam(required = false, defaultValue = "asc") sort_order: String?,
         @RequestParam(required = false) created_user_ids: List<Long>?,
         @RequestParam(required = false) assigned_user_ids: List<Long>?,
-    ): ResponseEntity<Map<String, Any>> {
+    ): ResponseEntity<TaskListResponse> {
         val user = authentication.principal as User
         val tasks = taskService.getUserTasks(
             userId = user.id,
@@ -72,52 +77,54 @@ class UserController(
         )
 
         val taskResources = tasks.map { task ->
-            mapTaskToResource(task)
+            mapTaskToResponse(task)
         }
 
-        val response = mapOf("tasks" to taskResources)
+        val response = TaskListResponse(tasks = taskResources)
         return ResponseEntity.ok(response)
     }
 
-    private fun mapUserToResource(user: User): Map<String, Any> {
-        return mapOf(
-            "id" to user.id,
-            "name" to user.name,
-            "email" to user.email,
-            "email_verified_at" to (user.emailVerifiedAt?.toString() ?: ""),
-            "created_at" to user.createdAt.toString(),
-            "updated_at" to user.updatedAt.toString(),
+    private fun mapUserToResponse(user: User): UserResponse {
+        return UserResponse(
+            id = user.id,
+            name = user.name,
+            email = user.email,
+            email_verified_at = user.emailVerifiedAt?.toString(),
+            created_at = user.createdAt.toString(),
+            updated_at = user.updatedAt.toString(),
         )
     }
 
-    private fun mapTaskToResource(task: Task): Map<String, Any?> {
-        return mapOf(
-            "id" to task.id,
-            "title" to task.title,
-            "description" to task.description,
-            "is_public" to task.isPublic,
-            "is_done" to task.isDone,
-            "expired_at" to (task.expiredAt?.toString()),
-            "created_user_id" to task.createdUserId,
-            "created_at" to task.createdAt.toString(),
-            "updated_at" to task.updatedAt.toString(),
-            "created_user" to mapOf(
-                "id" to task.createdUser?.id,
-                "name" to task.createdUser?.name,
-                "email" to task.createdUser?.email,
-                "email_verified_at" to (task.createdUser?.emailVerifiedAt?.toString()),
-                "created_at" to (task.createdUser?.createdAt?.toString()),
-                "updated_at" to (task.createdUser?.updatedAt?.toString()),
+    private fun mapTaskToResponse(task: Task): TaskResponse {
+        return TaskResponse(
+            id = task.id,
+            title = task.title,
+            description = task.description,
+            is_public = task.isPublic,
+            is_done = task.isDone,
+            expired_at = task.expiredAt?.toString(),
+            created_user_id = task.createdUserId,
+            created_at = task.createdAt.toString(),
+            updated_at = task.updatedAt.toString(),
+            created_user = UserResponse(
+                id = task.createdUser.id,
+                name = task.createdUser.name,
+                email = task.createdUser.email,
+                email_verified_at = task.createdUser.emailVerifiedAt?.toString(),
+                created_at = task.createdUser.createdAt.toString(),
+                updated_at = task.createdUser.updatedAt.toString(),
             ),
-            "assigned_users" to task.assignedUsers.map { assignedUser ->
-                mapOf(
-                    "id" to assignedUser.user?.id,
-                    "name" to assignedUser.user?.name,
-                    "email" to assignedUser.user?.email,
-                    "email_verified_at" to (assignedUser.user?.emailVerifiedAt?.toString()),
-                    "created_at" to (assignedUser.user?.createdAt?.toString()),
-                    "updated_at" to (assignedUser.user?.updatedAt?.toString()),
-                )
+            assigned_users = task.assignedUsers.mapNotNull { assignedUser ->
+                assignedUser.user?.let { user ->
+                    UserResponse(
+                        id = user.id,
+                        name = user.name,
+                        email = user.email,
+                        email_verified_at = user.emailVerifiedAt?.toString(),
+                        created_at = user.createdAt.toString(),
+                        updated_at = user.updatedAt.toString(),
+                    )
+                }
             },
         )
     }

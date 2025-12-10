@@ -1,7 +1,10 @@
 package com.example.kotlinspringbootprac.controller
 
 import com.example.kotlinspringbootprac.dto.CreateTaskRequest
+import com.example.kotlinspringbootprac.dto.TaskCreateUpdateResponse
+import com.example.kotlinspringbootprac.dto.TaskResponse
 import com.example.kotlinspringbootprac.dto.UpdateTaskRequest
+import com.example.kotlinspringbootprac.dto.UserResponse
 import com.example.kotlinspringbootprac.entity.Task
 import com.example.kotlinspringbootprac.entity.User
 import com.example.kotlinspringbootprac.exception.ModelNotFoundException
@@ -36,11 +39,11 @@ class TaskController(
     fun createTask(
         @Valid @RequestBody request: CreateTaskRequest,
         authentication: Authentication,
-    ): ResponseEntity<Map<String, Any>> {
+    ): ResponseEntity<TaskCreateUpdateResponse> {
         val user = authentication.principal as User
         val task = taskService.createTask(user.id, request)
-        val taskResource = mapTaskToResource(task)
-        val response = mapOf("task" to taskResource)
+        val taskResource = mapTaskToResponse(task)
+        val response = TaskCreateUpdateResponse(task = taskResource)
         return ResponseEntity.ok(response)
     }
 
@@ -49,11 +52,11 @@ class TaskController(
     fun getTask(
         @PathVariable taskId: Long,
         authentication: Authentication,
-    ): ResponseEntity<Map<String, Any>> {
+    ): ResponseEntity<TaskCreateUpdateResponse> {
         val user = authentication.principal as User
         val task = taskService.getTaskById(taskId, user.id)
-        val taskResource = mapTaskToResource(task)
-        val response = mapOf("task" to taskResource)
+        val taskResource = mapTaskToResponse(task)
+        val response = TaskCreateUpdateResponse(task = taskResource)
         return ResponseEntity.ok(response)
     }
 
@@ -63,11 +66,11 @@ class TaskController(
         @PathVariable taskId: Long,
         @Valid @RequestBody request: UpdateTaskRequest,
         authentication: Authentication,
-    ): ResponseEntity<Map<String, Any>> {
+    ): ResponseEntity<TaskCreateUpdateResponse> {
         val user = authentication.principal as User
         val task = taskService.updateTask(taskId, user.id, request)
-        val taskResource = mapTaskToResource(task)
-        val response = mapOf("task" to taskResource)
+        val taskResource = mapTaskToResponse(task)
+        val response = TaskCreateUpdateResponse(task = taskResource)
         return ResponseEntity.ok(response)
     }
 
@@ -82,34 +85,36 @@ class TaskController(
         return ResponseEntity.noContent().build()
     }
 
-    private fun mapTaskToResource(task: Task): Map<String, Any?> {
-        return mapOf(
-            "id" to task.id,
-            "title" to task.title,
-            "description" to task.description,
-            "is_public" to task.isPublic,
-            "is_done" to task.isDone,
-            "expired_at" to (task.expiredAt?.toString()),
-            "created_user_id" to task.createdUserId,
-            "created_at" to task.createdAt.toString(),
-            "updated_at" to task.updatedAt.toString(),
-            "created_user" to mapOf(
-                "id" to task.createdUser?.id,
-                "name" to task.createdUser?.name,
-                "email" to task.createdUser?.email,
-                "email_verified_at" to (task.createdUser?.emailVerifiedAt?.toString()),
-                "created_at" to (task.createdUser?.createdAt?.toString()),
-                "updated_at" to (task.createdUser?.updatedAt?.toString()),
+    private fun mapTaskToResponse(task: Task): TaskResponse {
+        return TaskResponse(
+            id = task.id,
+            title = task.title,
+            description = task.description,
+            is_public = task.isPublic,
+            is_done = task.isDone,
+            expired_at = task.expiredAt?.toString(),
+            created_user_id = task.createdUserId,
+            created_at = task.createdAt.toString(),
+            updated_at = task.updatedAt.toString(),
+            created_user = UserResponse(
+                id = task.createdUser.id,
+                name = task.createdUser.name,
+                email = task.createdUser.email,
+                email_verified_at = task.createdUser.emailVerifiedAt?.toString(),
+                created_at = task.createdUser.createdAt.toString(),
+                updated_at = task.createdUser.updatedAt.toString(),
             ),
-            "assigned_users" to task.assignedUsers.map { assignedUser ->
-                mapOf(
-                    "id" to assignedUser.user?.id,
-                    "name" to assignedUser.user?.name,
-                    "email" to assignedUser.user?.email,
-                    "email_verified_at" to (assignedUser.user?.emailVerifiedAt?.toString()),
-                    "created_at" to (assignedUser.user?.createdAt?.toString()),
-                    "updated_at" to (assignedUser.user?.updatedAt?.toString()),
-                )
+            assigned_users = task.assignedUsers.mapNotNull { assignedUser ->
+                assignedUser.user?.let { user ->
+                    UserResponse(
+                        id = user.id,
+                        name = user.name,
+                        email = user.email,
+                        email_verified_at = user.emailVerifiedAt?.toString(),
+                        created_at = user.createdAt.toString(),
+                        updated_at = user.updatedAt.toString(),
+                    )
+                }
             },
         )
     }

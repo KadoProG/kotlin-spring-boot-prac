@@ -1,6 +1,9 @@
 package com.example.kotlinspringbootprac.controller
 
 import com.example.kotlinspringbootprac.dto.CreateTaskActionRequest
+import com.example.kotlinspringbootprac.dto.TaskActionCreateUpdateResponse
+import com.example.kotlinspringbootprac.dto.TaskActionListResponse
+import com.example.kotlinspringbootprac.dto.TaskActionResponse
 import com.example.kotlinspringbootprac.dto.UpdateTaskActionRequest
 import com.example.kotlinspringbootprac.entity.User
 import com.example.kotlinspringbootprac.exception.ModelNotFoundException
@@ -34,11 +37,11 @@ class TaskActionController(
     fun getTaskActions(
         @PathVariable("task") taskId: Long,
         authentication: Authentication,
-    ): ResponseEntity<Map<String, Any>> {
+    ): ResponseEntity<TaskActionListResponse> {
         val user = authentication.principal as User
         val actions = taskActionService.getTaskActions(taskId, user.id)
-        val actionResources = actions.map { mapTaskActionToResource(it) }
-        val response = mapOf("actions" to actionResources)
+        val actionResources = actions.map { mapTaskActionToResponse(it) }
+        val response = TaskActionListResponse(actions = actionResources)
         return ResponseEntity.ok(response)
     }
 
@@ -48,11 +51,12 @@ class TaskActionController(
         @PathVariable("task") taskId: Long,
         @Valid @RequestBody request: CreateTaskActionRequest,
         authentication: Authentication,
-    ): ResponseEntity<Map<String, Any?>> {
+    ): ResponseEntity<TaskActionCreateUpdateResponse> {
         val user = authentication.principal as User
         val action = taskActionService.createTaskAction(taskId, user.id, request)
-        val actionResource = mapTaskActionToResource(action)
-        return ResponseEntity.ok(actionResource)
+        val actionResource = mapTaskActionToResponse(action)
+        val response = TaskActionCreateUpdateResponse(action = actionResource)
+        return ResponseEntity.ok(response)
     }
 
     @PutMapping("/{action}")
@@ -62,11 +66,12 @@ class TaskActionController(
         @PathVariable("action") actionId: Long,
         @Valid @RequestBody request: UpdateTaskActionRequest,
         authentication: Authentication,
-    ): ResponseEntity<Map<String, Any?>> {
+    ): ResponseEntity<TaskActionCreateUpdateResponse> {
         val user = authentication.principal as User
         val action = taskActionService.updateTaskAction(taskId, actionId, user.id, request)
-        val actionResource = mapTaskActionToResource(action)
-        return ResponseEntity.ok(actionResource)
+        val actionResource = mapTaskActionToResponse(action)
+        val response = TaskActionCreateUpdateResponse(action = actionResource)
+        return ResponseEntity.ok(response)
     }
 
     @DeleteMapping("/{action}")
@@ -81,15 +86,15 @@ class TaskActionController(
         return ResponseEntity.noContent().build()
     }
 
-    private fun mapTaskActionToResource(action: com.example.kotlinspringbootprac.entity.TaskAction): Map<String, Any?> {
-        return mapOf(
-            "id" to action.id,
-            "task_id" to action.taskId,
-            "name" to action.name,
-            "is_done" to action.isDone,
-            "created_at" to action.createdAt.toString(),
-            "updated_at" to action.updatedAt.toString(),
-            "deleted_at" to (action.deletedAt?.toString()),
+    private fun mapTaskActionToResponse(action: com.example.kotlinspringbootprac.entity.TaskAction): TaskActionResponse {
+        return TaskActionResponse(
+            id = action.id,
+            task_id = action.taskId,
+            name = action.name,
+            is_done = action.isDone,
+            created_at = action.createdAt.toString(),
+            updated_at = action.updatedAt.toString(),
+            deleted_at = action.deletedAt?.toString(),
         )
     }
 

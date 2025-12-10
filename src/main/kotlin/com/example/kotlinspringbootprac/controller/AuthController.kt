@@ -1,6 +1,8 @@
 package com.example.kotlinspringbootprac.controller
 
 import com.example.kotlinspringbootprac.dto.LoginRequest
+import com.example.kotlinspringbootprac.dto.LoginResponse
+import com.example.kotlinspringbootprac.dto.LoginUserResponse
 import com.example.kotlinspringbootprac.dto.RegisterRequest
 import com.example.kotlinspringbootprac.exception.ValidationException
 import com.example.kotlinspringbootprac.service.UserService
@@ -27,15 +29,15 @@ class AuthController(
     }
 
     @PostMapping("/login")
-    fun login(@Valid @RequestBody request: LoginRequest): ResponseEntity<Map<String, Any>> {
+    fun login(@Valid @RequestBody request: LoginRequest): ResponseEntity<LoginResponse> {
         val (user, token) = userService.login(request)
-        val response = mapOf(
-            "message" to "Login successful",
-            "token" to token,
-            "user" to mapOf(
-                "id" to user.id,
-                "name" to user.name,
-                "email" to user.email,
+        val response = LoginResponse(
+            message = "Login successful",
+            token = token,
+            user = LoginUserResponse(
+                id = user.id,
+                name = user.name,
+                email = user.email,
             ),
         )
         return ResponseEntity.ok(response)

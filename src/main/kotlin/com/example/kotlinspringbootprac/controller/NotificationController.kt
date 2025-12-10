@@ -1,5 +1,10 @@
 package com.example.kotlinspringbootprac.controller
 
+import com.example.kotlinspringbootprac.dto.MarkAllAsReadResponse
+import com.example.kotlinspringbootprac.dto.NotificationListResponse
+import com.example.kotlinspringbootprac.dto.NotificationReadResponse
+import com.example.kotlinspringbootprac.dto.NotificationResponse
+import com.example.kotlinspringbootprac.dto.UnreadCountResponse
 import com.example.kotlinspringbootprac.entity.Notification
 import com.example.kotlinspringbootprac.entity.User
 import com.example.kotlinspringbootprac.exception.ModelNotFoundException
@@ -31,18 +36,18 @@ class NotificationController(
         @RequestParam(defaultValue = "0") page: Int,
         @RequestParam(defaultValue = "20") size: Int,
         authentication: Authentication,
-    ): ResponseEntity<Map<String, Any>> {
+    ): ResponseEntity<NotificationListResponse> {
         val user = authentication.principal as User
         val notifications = notificationService.getNotifications(user.id, page, size)
         val unreadCount = notificationService.getUnreadCount(user.id)
 
-        val response = mapOf(
-            "notifications" to notifications.content.map { mapNotificationToResource(it) },
-            "unread_count" to unreadCount,
-            "page" to notifications.number,
-            "size" to notifications.size,
-            "total_pages" to notifications.totalPages,
-            "total_elements" to notifications.totalElements,
+        val response = NotificationListResponse(
+            notifications = notifications.content.map { mapNotificationToResponse(it) },
+            unread_count = unreadCount,
+            page = notifications.number,
+            size = notifications.size,
+            total_pages = notifications.totalPages,
+            total_elements = notifications.totalElements,
         )
         return ResponseEntity.ok(response)
     }
@@ -53,10 +58,10 @@ class NotificationController(
      */
     @GetMapping("/unread-count")
     @PreAuthorize("isAuthenticated()")
-    fun getUnreadCount(authentication: Authentication): ResponseEntity<Map<String, Any>> {
+    fun getUnreadCount(authentication: Authentication): ResponseEntity<UnreadCountResponse> {
         val user = authentication.principal as User
         val count = notificationService.getUnreadCount(user.id)
-        return ResponseEntity.ok(mapOf("unread_count" to count))
+        return ResponseEntity.ok(UnreadCountResponse(unread_count = count))
     }
 
     /**
@@ -68,10 +73,11 @@ class NotificationController(
     fun markAsRead(
         @PathVariable notificationId: Long,
         authentication: Authentication,
-    ): ResponseEntity<Map<String, Any>> {
+    ): ResponseEntity<NotificationReadResponse> {
         val user = authentication.principal as User
         val notification = notificationService.markAsRead(notificationId, user.id)
-        return ResponseEntity.ok(mapOf("notification" to mapNotificationToResource(notification)))
+        val response = NotificationReadResponse(notification = mapNotificationToResponse(notification))
+        return ResponseEntity.ok(response)
     }
 
     /**
@@ -80,22 +86,22 @@ class NotificationController(
      */
     @PutMapping("/read-all")
     @PreAuthorize("isAuthenticated()")
-    fun markAllAsRead(authentication: Authentication): ResponseEntity<Map<String, Any>> {
+    fun markAllAsRead(authentication: Authentication): ResponseEntity<MarkAllAsReadResponse> {
         val user = authentication.principal as User
         notificationService.markAllAsRead(user.id)
-        return ResponseEntity.ok(mapOf("message" to "All notifications marked as read"))
+        return ResponseEntity.ok(MarkAllAsReadResponse(message = "All notifications marked as read"))
     }
 
-    private fun mapNotificationToResource(notification: Notification): Map<String, Any?> {
-        return mapOf(
-            "id" to notification.id,
-            "title" to notification.title,
-            "message" to notification.message,
-            "type" to notification.type.name,
-            "related_task_id" to notification.relatedTaskId,
-            "is_read" to notification.isRead,
-            "read_at" to notification.readAt?.toString(),
-            "created_at" to notification.createdAt.toString(),
+    private fun mapNotificationToResponse(notification: Notification): NotificationResponse {
+        return NotificationResponse(
+            id = notification.id,
+            title = notification.title,
+            message = notification.message,
+            type = notification.type.name,
+            related_task_id = notification.relatedTaskId,
+            is_read = notification.isRead,
+            read_at = notification.readAt?.toString(),
+            created_at = notification.createdAt.toString(),
         )
     }
 

@@ -40,10 +40,10 @@ data class Task(
     @Column(name = "created_user_id", nullable = false, updatable = false)
     var createdUserId: Long,
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "created_user_id", insertable = false, updatable = false)
     @JsonIgnore
-    var createdUser: User? = null,
+    var createdUser: User,
 
     @OneToMany(mappedBy = "task", cascade = [CascadeType.ALL], orphanRemoval = true)
     @JsonIgnore

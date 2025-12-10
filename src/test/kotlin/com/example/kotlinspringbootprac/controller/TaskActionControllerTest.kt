@@ -99,6 +99,7 @@ class TaskActionControllerTest {
             isPublic = true,
             isDone = false,
             createdUserId = user.id,
+            createdUser = user,
         )
         val savedTask = taskRepository.save(task)
 
@@ -196,6 +197,7 @@ class TaskActionControllerTest {
             isPublic = true,
             isDone = false,
             createdUserId = savedUser1.id,
+            createdUser = savedUser1,
         )
         val savedTask = taskRepository.save(task)
 
@@ -268,6 +270,7 @@ class TaskActionControllerTest {
             isPublic = true,
             isDone = false,
             createdUserId = user.id,
+            createdUser = user,
         )
         val savedTask = taskRepository.save(task)
 
@@ -285,13 +288,13 @@ class TaskActionControllerTest {
                 .header("Authorization", "Bearer $token"),
         )
             .andExpect(status().isOk)
-            .andExpect(jsonPath("$.id").exists())
-            .andExpect(jsonPath("$.task_id").value(savedTask.id))
-            .andExpect(jsonPath("$.name").value("New Action"))
-            .andExpect(jsonPath("$.is_done").value(false))
-            .andExpect(jsonPath("$.created_at").exists())
-            .andExpect(jsonPath("$.updated_at").exists())
-            .andExpect(jsonPath("$.deleted_at").isEmpty)
+            .andExpect(jsonPath("$.action.id").exists())
+            .andExpect(jsonPath("$.action.task_id").value(savedTask.id))
+            .andExpect(jsonPath("$.action.name").value("New Action"))
+            .andExpect(jsonPath("$.action.is_done").value(false))
+            .andExpect(jsonPath("$.action.created_at").exists())
+            .andExpect(jsonPath("$.action.updated_at").exists())
+            .andExpect(jsonPath("$.action.deleted_at").isEmpty)
     }
 
     @Test
@@ -348,6 +351,7 @@ class TaskActionControllerTest {
             isPublic = true,
             isDone = false,
             createdUserId = user.id,
+            createdUser = user,
         )
         val savedTask = taskRepository.save(task)
 
@@ -402,6 +406,7 @@ class TaskActionControllerTest {
             isPublic = true,
             isDone = false,
             createdUserId = user.id,
+            createdUser = user,
         )
         val savedTask = taskRepository.save(task)
 
@@ -427,10 +432,10 @@ class TaskActionControllerTest {
                 .header("Authorization", "Bearer $token"),
         )
             .andExpect(status().isOk)
-            .andExpect(jsonPath("$.id").value(savedAction.id))
-            .andExpect(jsonPath("$.task_id").value(savedTask.id))
-            .andExpect(jsonPath("$.name").value("Updated Action"))
-            .andExpect(jsonPath("$.is_done").value(true))
+            .andExpect(jsonPath("$.action.id").value(savedAction.id))
+            .andExpect(jsonPath("$.action.task_id").value(savedTask.id))
+            .andExpect(jsonPath("$.action.name").value("Updated Action"))
+            .andExpect(jsonPath("$.action.is_done").value(true))
     }
 
     @Test
@@ -471,6 +476,7 @@ class TaskActionControllerTest {
             isPublic = true,
             isDone = false,
             createdUserId = user.id,
+            createdUser = user,
         )
         val savedTask = taskRepository.save(task)
 
@@ -514,6 +520,7 @@ class TaskActionControllerTest {
             isPublic = true,
             isDone = false,
             createdUserId = savedUser1.id,
+            createdUser = savedUser1,
         )
         val savedTask = taskRepository.save(task)
 
@@ -610,6 +617,7 @@ class TaskActionControllerTest {
             isPublic = true,
             isDone = false,
             createdUserId = user.id,
+            createdUser = user,
         )
         val savedTask = taskRepository.save(task)
 
@@ -676,6 +684,7 @@ class TaskActionControllerTest {
             isPublic = true,
             isDone = false,
             createdUserId = user.id,
+            createdUser = user,
         )
         val savedTask = taskRepository.save(task)
 
@@ -712,6 +721,7 @@ class TaskActionControllerTest {
             isPublic = true,
             isDone = false,
             createdUserId = savedUser1.id,
+            createdUser = savedUser1,
         )
         val savedTask = taskRepository.save(task)
 
@@ -778,6 +788,7 @@ class TaskActionControllerTest {
             isPublic = true,
             isDone = false,
             createdUserId = savedUser1.id,
+            createdUser = savedUser1,
         )
         val savedTask = taskRepository.save(task)
 
