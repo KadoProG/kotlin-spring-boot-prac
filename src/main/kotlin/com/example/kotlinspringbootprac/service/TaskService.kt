@@ -168,6 +168,10 @@ class TaskService(
 
     @Transactional
     fun createTask(userId: Long, request: CreateTaskRequest): Task {
+        // ユーザーを取得
+        val user = userRepository.findById(userId)
+            .orElseThrow { ModelNotFoundException("User not found: $userId") }
+
         // タスクを作成
         val task = Task(
             title = request.title,
@@ -176,20 +180,21 @@ class TaskService(
             isDone = false,
             expiredAt = request.expired_at,
             createdUserId = userId,
+            createdUser = user,
         )
 
         val savedTask = taskRepository.save(task)
 
         // assigned_user_idsが指定されている場合は割り当てを追加
         request.assigned_user_ids?.forEach { assignedUserId ->
-            val user = userRepository.findById(assignedUserId)
+            val assignedUser = userRepository.findById(assignedUserId)
                 .orElseThrow { ModelNotFoundException("User not found: $assignedUserId") }
             val taskAssignedUser = TaskAssignedUser(
                 taskId = savedTask.id,
                 userId = assignedUserId,
             )
             taskAssignedUser.task = savedTask
-            taskAssignedUser.user = user
+            taskAssignedUser.user = assignedUser
             savedTask.assignedUsers.add(taskAssignedUser)
         }
 

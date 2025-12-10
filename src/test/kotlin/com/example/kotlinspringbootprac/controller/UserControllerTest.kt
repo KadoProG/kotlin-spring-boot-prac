@@ -142,6 +142,7 @@ class UserControllerTest {
             isPublic = true,
             isDone = false,
             createdUserId = user.id,
+            createdUser = user,
         )
         taskRepository.save(task)
 
@@ -188,6 +189,7 @@ class UserControllerTest {
             isPublic = true,
             isDone = false,
             createdUserId = savedUser1.id,
+            createdUser = savedUser1,
         )
         taskRepository.save(task1)
 
@@ -198,6 +200,7 @@ class UserControllerTest {
             isPublic = true,
             isDone = false,
             createdUserId = savedUser2.id,
+            createdUser = savedUser2,
         )
         taskRepository.save(task2)
 
@@ -252,6 +255,7 @@ class UserControllerTest {
             isPublic = true,
             isDone = false,
             createdUserId = savedUser1.id,
+            createdUser = savedUser1,
         )
         val savedTask = taskRepository.save(task)
 
@@ -334,6 +338,7 @@ class UserControllerTest {
             isPublic = true,
             isDone = true,
             createdUserId = user.id,
+            createdUser = user,
         )
         taskRepository.save(task1)
 
@@ -343,6 +348,7 @@ class UserControllerTest {
             isPublic = true,
             isDone = false,
             createdUserId = user.id,
+            createdUser = user,
         )
         taskRepository.save(task2)
 
