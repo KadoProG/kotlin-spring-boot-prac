@@ -102,12 +102,12 @@ class UserController(
             "created_at" to task.createdAt.toString(),
             "updated_at" to task.updatedAt.toString(),
             "created_user" to mapOf(
-                "id" to task.createdUser?.id,
-                "name" to task.createdUser?.name,
-                "email" to task.createdUser?.email,
-                "email_verified_at" to (task.createdUser?.emailVerifiedAt?.toString()),
-                "created_at" to (task.createdUser?.createdAt?.toString()),
-                "updated_at" to (task.createdUser?.updatedAt?.toString()),
+                "id" to task.createdUser.id,
+                "name" to task.createdUser.name,
+                "email" to task.createdUser.email,
+                "email_verified_at" to (task.createdUser.emailVerifiedAt?.toString()),
+                "created_at" to task.createdUser.createdAt.toString(),
+                "updated_at" to task.createdUser.updatedAt.toString(),
             ),
             "assigned_users" to task.assignedUsers.map { assignedUser ->
                 mapOf(

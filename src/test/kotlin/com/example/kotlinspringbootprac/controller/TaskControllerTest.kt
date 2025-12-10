@@ -93,6 +93,7 @@ class TaskControllerTest {
             isPublic = true,
             isDone = false,
             createdUserId = user.id,
+            createdUser = user,
         )
         val savedTask = taskRepository.save(task)
 
@@ -177,6 +178,7 @@ class TaskControllerTest {
             isPublic = true,
             isDone = false,
             createdUserId = savedUser1.id,
+            createdUser = savedUser1,
         )
         val savedTask = taskRepository.save(task)
 
@@ -249,6 +251,7 @@ class TaskControllerTest {
             isPublic = true,
             isDone = false,
             createdUserId = user.id,
+            createdUser = user,
         )
         val savedTask = taskRepository.save(task)
 
@@ -345,6 +348,7 @@ class TaskControllerTest {
             isPublic = true,
             isDone = false,
             createdUserId = savedUser1.id,
+            createdUser = savedUser1,
         )
         val savedTask = taskRepository.save(task)
 
@@ -419,6 +423,7 @@ class TaskControllerTest {
             isPublic = true,
             isDone = false,
             createdUserId = savedUser1.id,
+            createdUser = savedUser1,
         )
         val savedTask = taskRepository.save(task)
 
@@ -482,6 +487,7 @@ class TaskControllerTest {
             isPublic = true,
             isDone = false,
             createdUserId = savedUser1.id,
+            createdUser = savedUser1,
         )
         val savedTask = taskRepository.save(task)
 
@@ -828,6 +834,7 @@ class TaskControllerTest {
             isPublic = true,
             isDone = false,
             createdUserId = user.id,
+            createdUser = user,
         )
         val savedTask = taskRepository.save(task)
 
@@ -909,6 +916,7 @@ class TaskControllerTest {
             isPublic = true,
             isDone = false,
             createdUserId = savedUser1.id,
+            createdUser = savedUser1,
         )
         val savedTask = taskRepository.save(task)
 
@@ -967,6 +975,7 @@ class TaskControllerTest {
             isPublic = true,
             isDone = false,
             createdUserId = savedUser1.id,
+            createdUser = savedUser1,
         )
         val savedTask = taskRepository.save(task)
 
