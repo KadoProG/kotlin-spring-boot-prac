@@ -1,9 +1,17 @@
 package com.example.kotlinspringbootprac.controller
 
 import com.example.kotlinspringbootprac.dto.LoginRequest
+import com.example.kotlinspringbootprac.dto.LoginResponse
+import com.example.kotlinspringbootprac.dto.LoginUserResponse
 import com.example.kotlinspringbootprac.dto.RegisterRequest
 import com.example.kotlinspringbootprac.exception.ValidationException
 import com.example.kotlinspringbootprac.service.UserService
+import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.media.Content
+import io.swagger.v3.oas.annotations.media.Schema
+import io.swagger.v3.oas.annotations.responses.ApiResponse
+import io.swagger.v3.oas.annotations.responses.ApiResponses
+import io.swagger.v3.oas.annotations.tags.Tag
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -16,6 +24,7 @@ import org.springframework.web.bind.annotation.RestController
 
 @RestController
 @RequestMapping("/v1")
+@Tag(name = "Auth", description = "認証関連API")
 class AuthController(
     private val userService: UserService,
 ) {
@@ -27,15 +36,37 @@ class AuthController(
     }
 
     @PostMapping("/login")
-    fun login(@Valid @RequestBody request: LoginRequest): ResponseEntity<Map<String, Any>> {
+    @Operation(
+        summary = "ログイン",
+        description = "ユーザーのログインを行い、JWTトークンを取得します",
+    )
+    @ApiResponses(
+        value = [
+            ApiResponse(
+                responseCode = "200",
+                description = "ログイン成功",
+                content = [Content(schema = Schema(implementation = LoginResponse::class))],
+            ),
+            ApiResponse(
+                responseCode = "401",
+                description = "認証失敗",
+            ),
+            ApiResponse(
+                responseCode = "422",
+                description = "バリデーションエラー",
+                content = [Content(schema = Schema(implementation = ValidationException::class))],
+            ),
+        ],
+    )
+    fun login(@Valid @RequestBody request: LoginRequest): ResponseEntity<LoginResponse> {
         val (user, token) = userService.login(request)
-        val response = mapOf(
-            "message" to "Login successful",
-            "token" to token,
-            "user" to mapOf(
-                "id" to user.id,
-                "name" to user.name,
-                "email" to user.email,
+        val response = LoginResponse(
+            message = "Login successful",
+            token = token,
+            user = LoginUserResponse(
+                id = user.id,
+                name = user.name,
+                email = user.email,
             ),
         )
         return ResponseEntity.ok(response)
