@@ -170,7 +170,7 @@ class TaskActionControllerTest {
                 .header("Authorization", "Bearer $token"),
         )
             .andExpect(status().isNotFound)
-            .andExpect(jsonPath("$.message").value("Task not found"))
+            .andExpect(jsonPath("$.error").value("Task not found"))
     }
 
     @Test
@@ -493,7 +493,7 @@ class TaskActionControllerTest {
                 .header("Authorization", "Bearer $token"),
         )
             .andExpect(status().isNotFound)
-            .andExpect(jsonPath("$.message").value("TaskAction not found"))
+            .andExpect(jsonPath("$.error").value("TaskAction not found"))
     }
 
     @Test
@@ -694,7 +694,7 @@ class TaskActionControllerTest {
                 .header("Authorization", "Bearer $token"),
         )
             .andExpect(status().isNotFound)
-            .andExpect(jsonPath("$.message").value("TaskAction not found"))
+            .andExpect(jsonPath("$.error").value("TaskAction not found"))
     }
 
     @Test
