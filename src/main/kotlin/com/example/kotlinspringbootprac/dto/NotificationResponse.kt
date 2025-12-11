@@ -17,14 +17,14 @@ data class NotificationResponse(
     val type: String,
 
     @Schema(description = "関連タスクID", example = "123", nullable = true)
-    val relatedTaskId: Long?,
+    val related_task_id: Long?,
 
     @Schema(description = "既読フラグ", example = "false")
-    val isRead: Boolean,
+    val is_read: Boolean,
 
     @Schema(description = "既読日時", example = "2024-01-01T12:00:00", nullable = true)
-    val readAt: String?,
+    val read_at: String?,
 
     @Schema(description = "作成日時", example = "2024-01-01T10:00:00")
-    val createdAt: String,
+    val created_at: String,
 )

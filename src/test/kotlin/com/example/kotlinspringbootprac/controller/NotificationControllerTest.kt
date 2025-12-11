@@ -118,11 +118,11 @@ class NotificationControllerTest {
             .andExpect(jsonPath("$.notifications[0].title").value("Notification 2"))
             .andExpect(jsonPath("$.notifications[1].id").value(notification1.id))
             .andExpect(jsonPath("$.notifications[1].title").value("Notification 1"))
-            .andExpect(jsonPath("$.unreadCount").value(1))
+            .andExpect(jsonPath("$.unread_count").value(1))
             .andExpect(jsonPath("$.page").value(0))
             .andExpect(jsonPath("$.size").value(20))
-            .andExpect(jsonPath("$.totalPages").value(1))
-            .andExpect(jsonPath("$.totalElements").value(2))
+            .andExpect(jsonPath("$.total_pages").value(1))
+            .andExpect(jsonPath("$.total_elements").value(2))
     }
 
     @Test
@@ -175,7 +175,7 @@ class NotificationControllerTest {
                 .header("Authorization", "Bearer $token"),
         )
             .andExpect(status().isOk)
-            .andExpect(jsonPath("$.unreadCount").value(2))
+            .andExpect(jsonPath("$.unread_count").value(2))
     }
 
     @Test
@@ -207,8 +207,8 @@ class NotificationControllerTest {
         )
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.notification.id").value(notification.id))
-            .andExpect(jsonPath("$.notification.isRead").value(true))
-            .andExpect(jsonPath("$.notification.readAt").exists())
+            .andExpect(jsonPath("$.notification.is_read").value(true))
+            .andExpect(jsonPath("$.notification.read_at").exists())
     }
 
     @Test

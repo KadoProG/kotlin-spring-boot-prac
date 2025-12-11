@@ -71,11 +71,11 @@ class NotificationController(
 
         val response = NotificationsListResponse(
             notifications = notifications.content.map { mapNotificationToResponse(it) },
-            unreadCount = unreadCount,
+            unread_count = unreadCount,
             page = notifications.number,
             size = notifications.size,
-            totalPages = notifications.totalPages,
-            totalElements = notifications.totalElements,
+            total_pages = notifications.totalPages,
+            total_elements = notifications.totalElements,
         )
         return ResponseEntity.ok(response)
     }
@@ -107,7 +107,7 @@ class NotificationController(
     fun getUnreadCount(authentication: Authentication): ResponseEntity<UnreadCountResponse> {
         val user = authentication.principal as User
         val count = notificationService.getUnreadCount(user.id)
-        return ResponseEntity.ok(UnreadCountResponse(unreadCount = count))
+        return ResponseEntity.ok(UnreadCountResponse(unread_count = count))
     }
 
     /**
@@ -189,10 +189,10 @@ class NotificationController(
             title = notification.title,
             message = notification.message,
             type = notification.type.name,
-            relatedTaskId = notification.relatedTaskId,
-            isRead = notification.isRead,
-            readAt = notification.readAt?.toString(),
-            createdAt = notification.createdAt.toString(),
+            related_task_id = notification.relatedTaskId,
+            is_read = notification.isRead,
+            read_at = notification.readAt?.toString(),
+            created_at = notification.createdAt.toString(),
         )
     }
 

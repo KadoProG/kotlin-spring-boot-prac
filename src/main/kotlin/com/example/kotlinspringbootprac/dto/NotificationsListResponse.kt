@@ -8,7 +8,7 @@ data class NotificationsListResponse(
     val notifications: List<NotificationResponse>,
 
     @Schema(description = "未読通知数", example = "5")
-    val unreadCount: Long,
+    val unread_count: Long,
 
     @Schema(description = "現在のページ番号（0始まり）", example = "0")
     val page: Int,
@@ -17,8 +17,8 @@ data class NotificationsListResponse(
     val size: Int,
 
     @Schema(description = "総ページ数", example = "3")
-    val totalPages: Int,
+    val total_pages: Int,
 
     @Schema(description = "総件数", example = "45")
-    val totalElements: Long,
+    val total_elements: Long,
 )
