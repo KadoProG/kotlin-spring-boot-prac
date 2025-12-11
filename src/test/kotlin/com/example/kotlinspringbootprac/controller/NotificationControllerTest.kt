@@ -4,6 +4,7 @@ import com.example.kotlinspringbootprac.dto.LoginRequest
 import com.example.kotlinspringbootprac.dto.RegisterRequest
 import com.example.kotlinspringbootprac.entity.Notification
 import com.example.kotlinspringbootprac.entity.NotificationType
+import com.example.kotlinspringbootprac.entity.User
 import com.example.kotlinspringbootprac.repository.NotificationRepository
 import com.example.kotlinspringbootprac.repository.UserRepository
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -234,8 +235,13 @@ class NotificationControllerTest {
     @Test
     fun `markAsRead should return 403 when user does not own notification`() {
         // Given
-        val token1 = createUserAndGetToken()
-        val user1 = userRepository.findByEmail("test@example.com").orElseThrow()
+        val user1 = userRepository.save(
+            User(
+                name = "User 1",
+                email = "user1@example.com",
+                password = passwordEncoder.encode("password123"),
+            ),
+        )
 
         // Create second user
         val registerRequest2 = RegisterRequest(
@@ -326,5 +332,7 @@ class NotificationControllerTest {
         // When & Then
         mockMvc.perform(put("/v1/notifications/read-all"))
             .andExpect(status().isForbidden)
+            .andExpect(jsonPath("$.error").exists())
+            .andExpect(jsonPath("$.message").exists())
     }
 }
