@@ -1,9 +1,21 @@
 package com.example.kotlinspringbootprac.controller
 
+import com.example.kotlinspringbootprac.dto.ForbiddenErrorResponse
+import com.example.kotlinspringbootprac.dto.UnauthorizedErrorResponse
+import com.example.kotlinspringbootprac.dto.UserResponse
+import com.example.kotlinspringbootprac.dto.UserResponseWrapper
+import com.example.kotlinspringbootprac.dto.UsersListResponse
 import com.example.kotlinspringbootprac.entity.Task
 import com.example.kotlinspringbootprac.entity.User
 import com.example.kotlinspringbootprac.service.TaskService
 import com.example.kotlinspringbootprac.service.UserService
+import io.swagger.v3.oas.annotations.Operation
+import io.swagger.v3.oas.annotations.media.Content
+import io.swagger.v3.oas.annotations.media.Schema
+import io.swagger.v3.oas.annotations.responses.ApiResponse
+import io.swagger.v3.oas.annotations.responses.ApiResponses
+import io.swagger.v3.oas.annotations.security.SecurityRequirement
+import io.swagger.v3.oas.annotations.tags.Tag
 import org.springframework.format.annotation.DateTimeFormat
 import org.springframework.http.ResponseEntity
 import org.springframework.security.access.prepost.PreAuthorize
@@ -16,6 +28,7 @@ import java.time.LocalDateTime
 
 @RestController
 @RequestMapping("/v1/users")
+@Tag(name = "Users", description = "ユーザー管理API")
 class UserController(
     private val taskService: TaskService,
     private val userService: UserService,
@@ -23,21 +36,69 @@ class UserController(
 
     @GetMapping
     @PreAuthorize("isAuthenticated()")
-    fun getUsers(): ResponseEntity<Map<String, Any>> {
+    @Operation(
+        summary = "ユーザー一覧取得",
+        description = "すべてのユーザー情報を取得します",
+        security = [SecurityRequirement(name = "bearer-jwt")],
+    )
+    @ApiResponses(
+        value = [
+            ApiResponse(
+                responseCode = "200",
+                description = "ユーザー一覧取得成功",
+                content = [Content(schema = Schema(implementation = UsersListResponse::class))],
+            ),
+            ApiResponse(
+                responseCode = "401",
+                description = "認証失敗",
+                content = [Content(schema = Schema(implementation = UnauthorizedErrorResponse::class))],
+            ),
+            ApiResponse(
+                responseCode = "403",
+                description = "アクセス拒否",
+                content = [Content(schema = Schema(implementation = ForbiddenErrorResponse::class))],
+            ),
+        ],
+    )
+    fun getUsers(): ResponseEntity<UsersListResponse> {
         val users = userService.getUsers()
         val userResources = users.map { user ->
             mapUserToResource(user)
         }
-        val response = mapOf("users" to userResources)
+        val response = UsersListResponse(users = userResources)
         return ResponseEntity.ok(response)
     }
 
     @GetMapping("/me")
     @PreAuthorize("isAuthenticated()")
-    fun getCurrentUser(authentication: Authentication): ResponseEntity<Map<String, Any>> {
+    @Operation(
+        summary = "現在のユーザー情報取得",
+        description = "認証中のユーザー情報を取得します",
+        security = [SecurityRequirement(name = "bearer-jwt")],
+    )
+    @ApiResponses(
+        value = [
+            ApiResponse(
+                responseCode = "200",
+                description = "ユーザー情報取得成功",
+                content = [Content(schema = Schema(implementation = UserResponseWrapper::class))],
+            ),
+            ApiResponse(
+                responseCode = "401",
+                description = "認証失敗",
+                content = [Content(schema = Schema(implementation = UnauthorizedErrorResponse::class))],
+            ),
+            ApiResponse(
+                responseCode = "403",
+                description = "アクセス拒否",
+                content = [Content(schema = Schema(implementation = ForbiddenErrorResponse::class))],
+            ),
+        ],
+    )
+    fun getCurrentUser(authentication: Authentication): ResponseEntity<UserResponseWrapper> {
         val user = authentication.principal as User
         val userResource = mapUserToResource(user)
-        val response = mapOf("user" to userResource)
+        val response = UserResponseWrapper(user = userResource)
         return ResponseEntity.ok(response)
     }
 
@@ -79,14 +140,14 @@ class UserController(
         return ResponseEntity.ok(response)
     }
 
-    private fun mapUserToResource(user: User): Map<String, Any> {
-        return mapOf(
-            "id" to user.id,
-            "name" to user.name,
-            "email" to user.email,
-            "email_verified_at" to (user.emailVerifiedAt?.toString() ?: ""),
-            "created_at" to user.createdAt.toString(),
-            "updated_at" to user.updatedAt.toString(),
+    private fun mapUserToResource(user: User): UserResponse {
+        return UserResponse(
+            id = user.id,
+            name = user.name,
+            email = user.email,
+            email_verified_at = user.emailVerifiedAt?.toString(),
+            created_at = user.createdAt.toString(),
+            updated_at = user.updatedAt.toString(),
         )
     }
 

@@ -92,7 +92,7 @@ class UserControllerTest {
             .andExpect(jsonPath("$.user.id").exists())
             .andExpect(jsonPath("$.user.name").value("Test User"))
             .andExpect(jsonPath("$.user.email").value("test@example.com"))
-            .andExpect(jsonPath("$.user.email_verified_at").exists())
+            .andExpect(jsonPath("$.user.email_verified_at").isEmpty())
             .andExpect(jsonPath("$.user.created_at").exists())
             .andExpect(jsonPath("$.user.updated_at").exists())
     }
@@ -408,7 +408,7 @@ class UserControllerTest {
             .andExpect(jsonPath("$.users[0].id").exists())
             .andExpect(jsonPath("$.users[0].name").exists())
             .andExpect(jsonPath("$.users[0].email").exists())
-            .andExpect(jsonPath("$.users[0].email_verified_at").exists())
+            .andExpect(jsonPath("$.users[0].email_verified_at").isEmpty())
             .andExpect(jsonPath("$.users[0].created_at").exists())
             .andExpect(jsonPath("$.users[0].updated_at").exists())
             .andExpect(jsonPath("$.users[1].id").exists())
