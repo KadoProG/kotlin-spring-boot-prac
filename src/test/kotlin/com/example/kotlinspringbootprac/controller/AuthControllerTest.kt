@@ -52,6 +52,7 @@ class AuthControllerTest {
                 .content(objectMapper.writeValueAsString(request)),
         )
             .andExpect(status().isCreated)
+            .andExpect(jsonPath("$.message").value("User registered successfully"))
     }
 
     @Test

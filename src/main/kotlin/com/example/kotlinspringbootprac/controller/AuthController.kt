@@ -4,6 +4,7 @@ import com.example.kotlinspringbootprac.dto.LoginRequest
 import com.example.kotlinspringbootprac.dto.LoginResponse
 import com.example.kotlinspringbootprac.dto.LoginUserResponse
 import com.example.kotlinspringbootprac.dto.RegisterRequest
+import com.example.kotlinspringbootprac.dto.RegisterResponse
 import com.example.kotlinspringbootprac.exception.ValidationException
 import com.example.kotlinspringbootprac.service.UserService
 import io.swagger.v3.oas.annotations.Operation
@@ -30,9 +31,28 @@ class AuthController(
 ) {
 
     @PostMapping("/register")
-    fun register(@Valid @RequestBody request: RegisterRequest): ResponseEntity<String> {
+    @Operation(
+        summary = "ユーザー登録",
+        description = "新しいユーザーを登録します",
+    )
+    @ApiResponses(
+        value = [
+            ApiResponse(
+                responseCode = "201",
+                description = "ユーザー登録成功",
+                content = [Content(schema = Schema(implementation = RegisterResponse::class))],
+            ),
+            ApiResponse(
+                responseCode = "422",
+                description = "バリデーションエラー",
+                content = [Content(schema = Schema(implementation = ValidationException::class))],
+            ),
+        ],
+    )
+    fun register(@Valid @RequestBody request: RegisterRequest): ResponseEntity<RegisterResponse> {
         userService.register(request)
-        return ResponseEntity.status(HttpStatus.CREATED).body("User registered successfully")
+        val response = RegisterResponse(message = "User registered successfully")
+        return ResponseEntity.status(HttpStatus.CREATED).body(response)
     }
 
     @PostMapping("/login")
