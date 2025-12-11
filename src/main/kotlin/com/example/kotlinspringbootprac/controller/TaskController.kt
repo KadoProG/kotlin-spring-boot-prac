@@ -88,7 +88,7 @@ class TaskController(
         return ResponseEntity.ok(response)
     }
 
-    @GetMapping("/{taskId}")
+    @GetMapping("/{task}")
     @PreAuthorize("isAuthenticated()")
     @Operation(
         summary = "タスク取得",
@@ -121,7 +121,7 @@ class TaskController(
     )
     fun getTask(
         @Parameter(description = "タスクID", example = "1", required = true)
-        @PathVariable taskId: Long,
+        @PathVariable("task") taskId: Long,
         authentication: Authentication,
     ): ResponseEntity<TaskResponseWrapper> {
         val user = authentication.principal as User
@@ -131,7 +131,7 @@ class TaskController(
         return ResponseEntity.ok(response)
     }
 
-    @PutMapping("/{taskId}")
+    @PutMapping("/{task}")
     @PreAuthorize("isAuthenticated()")
     @Operation(
         summary = "タスク更新",
@@ -169,7 +169,7 @@ class TaskController(
     )
     fun updateTask(
         @Parameter(description = "タスクID", example = "1", required = true)
-        @PathVariable taskId: Long,
+        @PathVariable("task") taskId: Long,
         @Valid @RequestBody request: UpdateTaskRequest,
         authentication: Authentication,
     ): ResponseEntity<TaskResponseWrapper> {
@@ -180,7 +180,7 @@ class TaskController(
         return ResponseEntity.ok(response)
     }
 
-    @DeleteMapping("/{taskId}")
+    @DeleteMapping("/{task}")
     @PreAuthorize("isAuthenticated()")
     @Operation(
         summary = "タスク削除",
@@ -212,7 +212,7 @@ class TaskController(
     )
     fun deleteTask(
         @Parameter(description = "タスクID", example = "1", required = true)
-        @PathVariable taskId: Long,
+        @PathVariable("task") taskId: Long,
         authentication: Authentication,
     ): ResponseEntity<Void> {
         val user = authentication.principal as User

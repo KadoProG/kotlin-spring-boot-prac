@@ -11,6 +11,6 @@ data class CreateTaskActionRequest(
     @Schema(description = "アクション名", example = "資料を確認する", required = true)
     val name: String,
 
-    @Schema(description = "完了フラグ", example = "false", defaultValue = "false")
-    val is_done: Boolean? = false,
+    @Schema(description = "完了フラグ", example = "false")
+    val is_done: Boolean? = null,
 )
