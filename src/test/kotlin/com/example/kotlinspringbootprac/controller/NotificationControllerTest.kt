@@ -4,6 +4,7 @@ import com.example.kotlinspringbootprac.dto.LoginRequest
 import com.example.kotlinspringbootprac.dto.RegisterRequest
 import com.example.kotlinspringbootprac.entity.Notification
 import com.example.kotlinspringbootprac.entity.NotificationType
+import com.example.kotlinspringbootprac.entity.User
 import com.example.kotlinspringbootprac.repository.NotificationRepository
 import com.example.kotlinspringbootprac.repository.UserRepository
 import com.fasterxml.jackson.databind.ObjectMapper
@@ -117,11 +118,11 @@ class NotificationControllerTest {
             .andExpect(jsonPath("$.notifications[0].title").value("Notification 2"))
             .andExpect(jsonPath("$.notifications[1].id").value(notification1.id))
             .andExpect(jsonPath("$.notifications[1].title").value("Notification 1"))
-            .andExpect(jsonPath("$.unread_count").value(1))
+            .andExpect(jsonPath("$.unreadCount").value(1))
             .andExpect(jsonPath("$.page").value(0))
             .andExpect(jsonPath("$.size").value(20))
-            .andExpect(jsonPath("$.total_pages").value(1))
-            .andExpect(jsonPath("$.total_elements").value(2))
+            .andExpect(jsonPath("$.totalPages").value(1))
+            .andExpect(jsonPath("$.totalElements").value(2))
     }
 
     @Test
@@ -174,7 +175,7 @@ class NotificationControllerTest {
                 .header("Authorization", "Bearer $token"),
         )
             .andExpect(status().isOk)
-            .andExpect(jsonPath("$.unread_count").value(2))
+            .andExpect(jsonPath("$.unreadCount").value(2))
     }
 
     @Test
@@ -206,8 +207,8 @@ class NotificationControllerTest {
         )
             .andExpect(status().isOk)
             .andExpect(jsonPath("$.notification.id").value(notification.id))
-            .andExpect(jsonPath("$.notification.is_read").value(true))
-            .andExpect(jsonPath("$.notification.read_at").exists())
+            .andExpect(jsonPath("$.notification.isRead").value(true))
+            .andExpect(jsonPath("$.notification.readAt").exists())
     }
 
     @Test
@@ -234,8 +235,13 @@ class NotificationControllerTest {
     @Test
     fun `markAsRead should return 403 when user does not own notification`() {
         // Given
-        val token1 = createUserAndGetToken()
-        val user1 = userRepository.findByEmail("test@example.com").orElseThrow()
+        val user1 = userRepository.save(
+            User(
+                name = "User 1",
+                email = "user1@example.com",
+                password = passwordEncoder.encode("password123"),
+            ),
+        )
 
         // Create second user
         val registerRequest2 = RegisterRequest(
@@ -326,5 +332,7 @@ class NotificationControllerTest {
         // When & Then
         mockMvc.perform(put("/v1/notifications/read-all"))
             .andExpect(status().isForbidden)
+            .andExpect(jsonPath("$.error").exists())
+            .andExpect(jsonPath("$.message").exists())
     }
 }
