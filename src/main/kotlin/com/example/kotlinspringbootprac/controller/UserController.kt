@@ -1,6 +1,9 @@
 package com.example.kotlinspringbootprac.controller
 
 import com.example.kotlinspringbootprac.dto.ForbiddenErrorResponse
+import com.example.kotlinspringbootprac.dto.TaskResponse
+import com.example.kotlinspringbootprac.dto.TaskUserResponse
+import com.example.kotlinspringbootprac.dto.TasksListResponse
 import com.example.kotlinspringbootprac.dto.UnauthorizedErrorResponse
 import com.example.kotlinspringbootprac.dto.UserResponse
 import com.example.kotlinspringbootprac.dto.UserResponseWrapper
@@ -104,6 +107,30 @@ class UserController(
 
     @GetMapping("/me/tasks")
     @PreAuthorize("isAuthenticated()")
+    @Operation(
+        summary = "自分のタスク一覧取得",
+        description = "認証中のユーザーに関連するタスク一覧を取得します",
+        security = [SecurityRequirement(name = "bearer-jwt")],
+    )
+    @ApiResponses(
+        value = [
+            ApiResponse(
+                responseCode = "200",
+                description = "タスク一覧取得成功",
+                content = [Content(schema = Schema(implementation = TasksListResponse::class))],
+            ),
+            ApiResponse(
+                responseCode = "401",
+                description = "認証失敗",
+                content = [Content(schema = Schema(implementation = UnauthorizedErrorResponse::class))],
+            ),
+            ApiResponse(
+                responseCode = "403",
+                description = "アクセス拒否",
+                content = [Content(schema = Schema(implementation = ForbiddenErrorResponse::class))],
+            ),
+        ],
+    )
     fun getMyTasks(
         authentication: Authentication,
         @RequestParam(required = false) is_public: Boolean?,
@@ -116,7 +143,7 @@ class UserController(
         @RequestParam(required = false, defaultValue = "asc") sort_order: String?,
         @RequestParam(required = false) created_user_ids: List<Long>?,
         @RequestParam(required = false) assigned_user_ids: List<Long>?,
-    ): ResponseEntity<Map<String, Any>> {
+    ): ResponseEntity<TasksListResponse> {
         val user = authentication.principal as User
         val tasks = taskService.getUserTasks(
             userId = user.id,
@@ -136,7 +163,7 @@ class UserController(
             mapTaskToResource(task)
         }
 
-        val response = mapOf("tasks" to taskResources)
+        val response = TasksListResponse(tasks = taskResources)
         return ResponseEntity.ok(response)
     }
 
@@ -151,35 +178,38 @@ class UserController(
         )
     }
 
-    private fun mapTaskToResource(task: Task): Map<String, Any?> {
-        return mapOf(
-            "id" to task.id,
-            "title" to task.title,
-            "description" to task.description,
-            "is_public" to task.isPublic,
-            "is_done" to task.isDone,
-            "expired_at" to (task.expiredAt?.toString()),
-            "created_user_id" to task.createdUserId,
-            "created_at" to task.createdAt.toString(),
-            "updated_at" to task.updatedAt.toString(),
-            "created_user" to mapOf(
-                "id" to task.createdUser.id,
-                "name" to task.createdUser.name,
-                "email" to task.createdUser.email,
-                "email_verified_at" to (task.createdUser.emailVerifiedAt?.toString()),
-                "created_at" to task.createdUser.createdAt.toString(),
-                "updated_at" to task.createdUser.updatedAt.toString(),
+    private fun mapTaskToResource(task: Task): TaskResponse {
+        return TaskResponse(
+            id = task.id,
+            title = task.title,
+            description = task.description,
+            is_public = task.isPublic,
+            is_done = task.isDone,
+            expired_at = task.expiredAt?.toString(),
+            created_user_id = task.createdUserId,
+            created_at = task.createdAt.toString(),
+            updated_at = task.updatedAt.toString(),
+            created_user = TaskUserResponse(
+                id = task.createdUser.id,
+                name = task.createdUser.name,
+                email = task.createdUser.email,
+                email_verified_at = task.createdUser.emailVerifiedAt?.toString(),
+                created_at = task.createdUser.createdAt.toString(),
+                updated_at = task.createdUser.updatedAt.toString(),
             ),
-            "assigned_users" to task.assignedUsers.map { assignedUser ->
-                mapOf(
-                    "id" to assignedUser.user?.id,
-                    "name" to assignedUser.user?.name,
-                    "email" to assignedUser.user?.email,
-                    "email_verified_at" to (assignedUser.user?.emailVerifiedAt?.toString()),
-                    "created_at" to (assignedUser.user?.createdAt?.toString()),
-                    "updated_at" to (assignedUser.user?.updatedAt?.toString()),
-                )
-            },
+            assigned_users = task.assignedUsers
+                .mapNotNull { assignedUser ->
+                    assignedUser.user?.let { user ->
+                        TaskUserResponse(
+                            id = user.id,
+                            name = user.name,
+                            email = user.email,
+                            email_verified_at = user.emailVerifiedAt?.toString(),
+                            created_at = user.createdAt.toString(),
+                            updated_at = user.updatedAt.toString(),
+                        )
+                    }
+                },
         )
     }
 }
