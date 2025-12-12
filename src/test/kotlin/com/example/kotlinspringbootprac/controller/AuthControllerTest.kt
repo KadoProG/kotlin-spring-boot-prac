@@ -52,7 +52,13 @@ class AuthControllerTest {
                 .content(objectMapper.writeValueAsString(request)),
         )
             .andExpect(status().isCreated)
-            .andExpect(jsonPath("$.message").value("User registered successfully"))
+            .andExpect(jsonPath("$.user").exists())
+            .andExpect(jsonPath("$.user.id").exists())
+            .andExpect(jsonPath("$.user.name").value("Test User"))
+            .andExpect(jsonPath("$.user.email").value("test@example.com"))
+            .andExpect(jsonPath("$.user.created_at").exists())
+            .andExpect(jsonPath("$.user.updated_at").exists())
+            .andExpect(jsonPath("$.token").exists())
     }
 
     @Test

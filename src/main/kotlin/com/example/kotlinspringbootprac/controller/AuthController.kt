@@ -5,7 +5,9 @@ import com.example.kotlinspringbootprac.dto.LoginResponse
 import com.example.kotlinspringbootprac.dto.LoginUserResponse
 import com.example.kotlinspringbootprac.dto.RegisterRequest
 import com.example.kotlinspringbootprac.dto.RegisterResponse
+import com.example.kotlinspringbootprac.dto.RegisterUserResponse
 import com.example.kotlinspringbootprac.exception.ValidationException
+import com.example.kotlinspringbootprac.service.JwtService
 import com.example.kotlinspringbootprac.service.UserService
 import io.swagger.v3.oas.annotations.Operation
 import io.swagger.v3.oas.annotations.media.Content
@@ -22,12 +24,14 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import java.time.format.DateTimeFormatter
 
 @RestController
 @RequestMapping("/v1")
 @Tag(name = "Auth", description = "認証関連API")
 class AuthController(
     private val userService: UserService,
+    private val jwtService: JwtService,
 ) {
 
     @PostMapping("/register")
@@ -50,8 +54,23 @@ class AuthController(
         ],
     )
     fun register(@Valid @RequestBody request: RegisterRequest): ResponseEntity<RegisterResponse> {
-        userService.register(request)
-        val response = RegisterResponse(message = "User registered successfully")
+        val user = userService.register(request)
+        val token = jwtService.generateToken(user.id, user.email)
+
+        val dateTimeFormatter = DateTimeFormatter.ISO_LOCAL_DATE_TIME
+
+        val response = RegisterResponse(
+            user = RegisterUserResponse(
+                id = user.id.toString(),
+                name = user.name,
+                email = user.email,
+                email_verified_at = user.emailVerifiedAt?.format(dateTimeFormatter),
+                created_at = user.createdAt.format(dateTimeFormatter),
+                updated_at = user.updatedAt.format(dateTimeFormatter),
+                deleted_at = user.deletedAt?.format(dateTimeFormatter),
+            ),
+            token = token,
+        )
         return ResponseEntity.status(HttpStatus.CREATED).body(response)
     }
 
